@@ -1,6 +1,6 @@
 # Microservices Demo
 
-A demo application with Go, Java, Javascript, Kafka and PostgresQL.
+A demo application with Python, Go, Javascript, Kafka and PostgresQL.
 
 ## Architecture
 
