@@ -8,7 +8,7 @@ spec:
   type: ClusterIP
   ports:
   - name: vote
-    port: 80
+    port: 8080
   selector:
     app: vote
   
