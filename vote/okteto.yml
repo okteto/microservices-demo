@@ -1,6 +1,0 @@
-name: vote
-command: python app.py
-volumes:
-- /root/.cache/pip
-sync:
-- .:/app
