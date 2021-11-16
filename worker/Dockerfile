@@ -16,4 +16,4 @@ FROM scratch
 
 COPY --from=dev /usr/local/bin/worker /usr/local/bin/worker
 
-CMD ["/usr/local/bin/worker"]
+ENTRYPOINT ["/usr/local/bin/worker"]
