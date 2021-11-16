@@ -38,6 +38,11 @@ func main() {
 
 	pingDatabase(db)
 
+	dropTableStmt := `DROP TABLE IF EXISTS votes`
+	if _, err := db.Exec(dropTableStmt); err != nil {
+		log.Panic(err)
+	}
+
 	createTableStmt := `CREATE TABLE IF NOT EXISTS votes (id VARCHAR(255) NOT NULL UNIQUE, vote VARCHAR(255) NOT NULL)`
 	if _, err := db.Exec(createTableStmt); err != nil {
 		log.Panic(err)
