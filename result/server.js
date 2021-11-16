@@ -24,7 +24,7 @@ io.sockets.on('connection', function (socket) {
 });
 
 var pool = new pg.Pool({
-  connectionString: 'postgres://postgres:postgres@db/postgres'
+  connectionString: 'postgres://okteto:okteto@postgresql/votes'
 });
 
 async.retry(
@@ -32,7 +32,7 @@ async.retry(
   function(callback) {
     pool.connect(function(err, client, done) {
       if (err) {
-        console.error("Waiting for db");
+        console.error("Waiting for db", err);
       }
       callback(err, client);
     });
@@ -64,6 +64,7 @@ function collectVotesFromResult(result) {
 
   result.rows.forEach(function (row) {
     votes[row.vote] = parseInt(row.count);
+    console.log("Votes ", row.vote, parseInt(row.count));
   });
 
   return votes;

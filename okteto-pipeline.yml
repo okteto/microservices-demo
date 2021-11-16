@@ -1,8 +1,11 @@
 deploy:
- - okteto stack deploy
+ - helm repo add bitnami https://charts.bitnami.com/bitnami
+ - helm upgrade --install postgresql bitnami/postgresql -f postgresql/values.yml
+ - helm upgrade --install kafka bitnami/kafka -f kafka/values.yml
  - okteto build -t okteto.dev/result:${OKTETO_GIT_COMMIT} result
  - helm upgrade --install result result/chart --set image.tag=${OKTETO_GIT_COMMIT}
  - okteto build -t okteto.dev/vote:${OKTETO_GIT_COMMIT} vote
  - helm upgrade --install vote vote/chart --set image.tag=${OKTETO_GIT_COMMIT}
  - okteto build -t okteto.dev/worker:${OKTETO_GIT_COMMIT} worker
+ - okteto build -t okteto.dev/worker:dev --target dev worker
  - helm upgrade --install worker worker/chart --set image.tag=${OKTETO_GIT_COMMIT}  

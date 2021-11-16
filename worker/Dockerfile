@@ -1,17 +1,19 @@
-FROM maven:3.5-jdk-8-alpine AS build
+FROM golang:buster as dev
 
-WORKDIR /code
+COPY bashrc /root/.bashrc
 
-COPY pom.xml /code/pom.xml
-RUN ["mvn", "dependency:resolve"]
-RUN ["mvn", "verify"]
+RUN go get github.com/codegangsta/gin && \
+    go get -u github.com/go-delve/delve/cmd/dlv && \
+    go get -u golang.org/x/tools/gopls && \
+    curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b /usr/bin
 
-# Adding source, compile and package into a fat jar
-COPY ["src/main", "/code/src/main"]
-RUN ["mvn", "package"]
+WORKDIR /app
 
-FROM openjdk:8-jre-alpine
+ADD . .
+RUN go build -o /usr/local/bin/worker
 
-COPY --from=build /code/target/worker-jar-with-dependencies.jar /
+FROM scratch
 
-CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-jar", "/worker-jar-with-dependencies.jar"]
+COPY --from=dev /usr/local/bin/worker /usr/local/bin/worker
+
+CMD ["/usr/local/bin/worker"]

@@ -1,0 +1,11 @@
+name: worker
+image: okteto.dev/worker:dev
+command: bash
+securityContext:
+  capabilities:
+    add:
+    - SYS_PTRACE
+sync:
+  - .:/app
+forward:
+  - 2345:2345
