@@ -88,12 +88,12 @@ body{
   text-transform: uppercase;
 }
 
-#choice .choice.dogs{
+#choice .choice.tacos{
   color: #00cbca;
   float: right;
 }
 
-#choice .choice.cats{
+#choice .choice.burritos{
   color: #2196f3;
   float: left;
 }
