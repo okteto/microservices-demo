@@ -9,3 +9,5 @@ sync:
   - .:/app
 forward:
   - 2345:2345
+persistentVolume:
+  enabled: false

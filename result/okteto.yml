@@ -2,5 +2,5 @@ name: result
 command: node server.js
 sync:
   - .:/app
-forward:
-  - 9229:9229
+persistentVolume:
+  enabled: false

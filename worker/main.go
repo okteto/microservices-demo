@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/gofrs/uuid"
 	_ "github.com/lib/pq"
 
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
@@ -19,8 +18,6 @@ import (
 var (
 	brokerList        = kingpin.Flag("brokerList", "List of brokers to connect").Default("kafka:9092").Strings()
 	topic             = kingpin.Flag("topic", "Topic name").Default("votes").String()
-	partition         = kingpin.Flag("partition", "Partition number").Default("0").String()
-	offsetType        = kingpin.Flag("offsetType", "Offset Type (OffsetNewest | OffsetOldest)").Default("-1").Int()
 	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
 )
 
@@ -63,21 +60,17 @@ func main() {
 		for {
 			select {
 			case err := <-consumer.Errors():
-				log.Println(err)
+				fmt.Println(err)
 			case msg := <-consumer.Messages():
 				*messageCountStart++
-				log.Println("Received messages", string(msg.Key), string(msg.Value))
+				fmt.Printf("Received message: user %s vote %s\n", string(msg.Key), string(msg.Value))
 
-				u, err := uuid.NewV4()
-				if err != nil {
-					log.Panic(err)
-				}
 				insertDynStmt := `insert into "votes"("id", "vote") values($1, $2) on conflict(id) do update set vote = $2`
-				if _, err := db.Exec(insertDynStmt, u.String(), string(msg.Value)); err != nil {
+				if _, err := db.Exec(insertDynStmt, *messageCountStart, string(msg.Value)); err != nil {
 					log.Panic(err)
 				}
 			case <-signals:
-				log.Println("Interrupt is detected")
+				fmt.Println("Interrupt is detected")
 				doneCh <- struct{}{}
 			}
 		}
