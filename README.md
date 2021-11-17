@@ -1,12 +1,12 @@
 # Microservices Demo
 
-A demo application with Python, Go, Javascript, Kafka and PostgresQL.
+A demo application with Java, Go, Javascript, Kafka and PostgresQL.
 
 ## Architecture
 
 ![Architecture diagram](architecture.png)
 
-* A front-end web app in [Python](/vote) which lets you vote between two options
+* A front-end web app in [Java](/vote) which lets you vote between Tacos and Burritos
 * A [Kafka](https://bitnami.com/stack/kafka/helm) queue which collects new votes
 * A [Golang](/worker) or worker which consumes votes from Kafka and stores them in PostgresQL
 * A [PostgresQL](https://bitnami.com/stack/postgresql/helm) database
@@ -15,6 +15,9 @@ A demo application with Python, Go, Javascript, Kafka and PostgresQL.
 ## Run the demo application in Okteto
 
 ```
+$ git clone https://github.com/okteto/microservices-demo
+$ cd microservices-demo
+$ okteto login
 $ okteto deploy
 ```
 
@@ -34,6 +37,7 @@ $ okteto up -f vote/okteto.yml
 
 ```
 $ okteto up -f worker/okteto.yml
+$ make start
 ```
 
 ## Notes

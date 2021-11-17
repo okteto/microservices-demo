@@ -1,5 +1,5 @@
 name: vote
-command: mvn spring-boot:run
+command: ./mvnw spring-boot:run
 sync:
   - .:/app
 persistentVolume:
