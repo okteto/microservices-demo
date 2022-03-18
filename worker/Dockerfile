@@ -1,4 +1,4 @@
-FROM golang:1.17-buster as dev
+FROM golang:buster as dev
 
 COPY bashrc /root/.bashrc
 
