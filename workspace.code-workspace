@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "result"
+		},
+		{
+			"path": "vote"
+		},
+		{
+			"path": "worker"
+		}
+	]
+}
