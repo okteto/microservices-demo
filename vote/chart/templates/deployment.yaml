@@ -15,7 +15,7 @@ spec:
         app: vote
     spec:
       containers:
-      - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+      - image: {{ .Values.image }}
         name: vote
         ports:
         - containerPort: 8080

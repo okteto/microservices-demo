@@ -1,6 +1,0 @@
-name: vote
-command: ./mvnw spring-boot:run
-sync:
-  - .:/app
-persistentVolume:
-  enabled: false

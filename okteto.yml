@@ -3,10 +3,13 @@ icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
 build:
   result:
     context: result
+
   vote:
     context: vote
+
   worker:
     context: worker
+
   worker-dev:
     context: worker
     target: dev
@@ -15,5 +18,38 @@ deploy:
   - helm repo add bitnami https://charts.bitnami.com/bitnami
   - helm upgrade --install postgresql bitnami/postgresql -f postgresql/values.yml --version 10.16.2
   - helm upgrade --install kafka bitnami/kafka -f kafka/values.yml --version 14.5.0
-  - helm upgrade --install vote vote/chart --set image.tag=${OKTETO_BUILD_VOTE_IMAGE}  - helm upgrade --install result result/chart --set image.tag=${OKTETO_GIT_COMMIT}
-  - helm upgrade --install worker worker/chart --set image.tag=${OKTETO_WORKER_VOTE_IMAGE}
+  - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
+  - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
+  - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
+
+dev:
+  vote:
+    name: vote
+    command: ./mvnw spring-boot:run
+    sync:
+      - ./vote:/app
+    persistentVolume:
+      enabled: false
+
+  result:
+    name: result
+    command: bash
+    sync:
+      - ./result:/app
+    persistentVolume:
+      enabled: false
+
+  worker:
+    name: worker
+    image: okteto.dev/worker:dev
+    command: nodemon server.js
+    securityContext:
+      capabilities:
+        add:
+        - SYS_PTRACE
+    sync:
+      - ./worker:/app
+    forward:
+      - 2345:2345
+    persistentVolume:
+      enabled: false
