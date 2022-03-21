@@ -24,19 +24,19 @@ $ okteto deploy
 ## Develop on the Result microservice
 
 ```
-$ okteto up -f result/okteto.yml
+$ okteto up result
 ```
 
 ## Develop on the Vote microservice
 
 ```
-$ okteto up -f vote/okteto.yml
+$ okteto up vote
 ```
 
 ## Develop on the Worker microservice
 
 ```
-$ okteto up -f worker/okteto.yml
+$ okteto up worker
 $ make start
 ```
 

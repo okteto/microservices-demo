@@ -10,7 +10,7 @@ build:
   worker:
     context: worker
 
-  worker-dev:
+  dev:
     context: worker
     target: dev
 
@@ -24,7 +24,6 @@ deploy:
 
 dev:
   vote:
-    name: vote
     command: ./mvnw spring-boot:run
     sync:
       - ./vote:/app
@@ -32,17 +31,15 @@ dev:
       enabled: false
 
   result:
-    name: result
-    command: bash
+    command: nodemon server.js
     sync:
       - ./result:/app
     persistentVolume:
       enabled: false
 
   worker:
-    name: worker
-    image: okteto.dev/worker:dev
-    command: nodemon server.js
+    image: ${OKTETO_BUILD_DEV_IMAGE}
+    command: bash
     securityContext:
       capabilities:
         add:
