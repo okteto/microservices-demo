@@ -2,5 +2,8 @@ name: vote
 command: ./mvnw spring-boot:run
 sync:
   - .:/app
+remote: 22000
+forward:
+  - 5005:5005
 persistentVolume:
   enabled: false
