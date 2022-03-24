@@ -1,5 +1,5 @@
 name: result
-command: nodemon server.js
+command: bash
 sync:
   - .:/app
 persistentVolume:
