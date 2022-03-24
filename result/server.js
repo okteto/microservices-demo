@@ -1,8 +1,6 @@
 var express = require('express'),
-    async = require('async'),
-    pg = require('pg'),
-    { Pool } = require('pg'),
     path = require('path'),
+    mongo = require('mongodb').MongoClient,
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     methodOverride = require('method-override'),
@@ -12,10 +10,32 @@ var express = require('express'),
 
 io.set('transports', ['polling']);
 
+var mongoUrl = `mongodb://${process.env.MONGODB_USERNAME}:${encodeURIComponent(process.env.MONGODB_PASSWORD)}@${process.env.MONGODB_HOST}:27017/${process.env.MONGODB_DATABASE}`;
 var port = process.env.PORT || 4000;
 
-io.sockets.on('connection', function (socket) {
+function collectVotesFromResult(result) {
+  var votes = { a: 0, b: 0 };
+  result.forEach(function(row) {
+    votes[row.vote] += 1;
+  });
+  return votes;
+}
 
+function getVotes(db) {
+  db.collection('votes').find().toArray((err, results) => {
+    if (err){
+      console.error('Error performing query: ' + err);
+    } else {
+      var votes = collectVotesFromResult(results);
+      io.sockets.emit('scores', JSON.stringify(votes));
+    }
+    setTimeout(function() {
+      getVotes(db);
+    }, 1000);
+  });
+}
+
+io.sockets.on('connection', function (socket) {
   socket.emit('message', { text : 'Welcome!' });
 
   socket.on('subscribe', function (data) {
@@ -23,51 +43,19 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
-var pool = new pg.Pool({
-  connectionString: 'postgres://okteto:okteto@postgresql/votes'
-});
-
-async.retry(
-  {times: 1000, interval: 1000},
-  function(callback) {
-    pool.connect(function(err, client, done) {
-      if (err) {
-        console.error("Waiting for db", err);
-      }
-      callback(err, client);
-    });
-  },
-  function(err, client) {
-    if (err) {
-      return console.error("Giving up");
-    }
-    console.log("Connected to db");
-    getVotes(client);
+mongo.connect(mongoUrl, {
+  useUnifiedTopology: true,
+  useNewUrlParser: true,
+  connectTimeoutMS: 1000,
+  socketTimeoutMS: 1000,
+}, (err, client) => {
+  if (err) {
+    console.error(`Error connecting to mongodb`);
+    return;
   }
-);
-
-function getVotes(client) {
-  client.query('SELECT vote, COUNT(id) AS count FROM votes GROUP BY vote', [], function(err, result) {
-    if (err) {
-      console.error("Error performing query: " + err);
-    } else {
-      var votes = collectVotesFromResult(result);
-      io.sockets.emit("scores", JSON.stringify(votes));
-    }
-
-    setTimeout(function() {getVotes(client) }, 1000);
-  });
-}
-
-function collectVotesFromResult(result) {
-  var votes = {a: 0, b: 0};
-
-  result.rows.forEach(function (row) {
-    votes[row.vote] = parseInt(row.count);
-  });
-
-  return votes;
-}
+  const db = client.db(process.env.MONGODB_DATABASE);
+  getVotes(db);
+});
 
 app.use(cookieParser());
 app.use(bodyParser());
