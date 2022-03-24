@@ -10,7 +10,7 @@ var express = require('express'),
 
 io.set('transports', ['polling']);
 
-var mongoUrl = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@mongodb-serverless.tussl.mongodb.net/${process.env.MONGODB_DATABASE}?retryWrites=true&w=majority`;
+var mongoUrl = `mongodb+srv://${process.env.MONGODB_USERNAME}:${encodeURIComponent(process.env.MONGODB_PASSWORD)}@mongodb-serverless.tussl.mongodb.net/${process.env.MONGODB_DATABASE}?retryWrites=true&w=majority`;
 var port = process.env.PORT || 4000;
 
 function collectVotesFromResult(result) {
@@ -50,10 +50,11 @@ mongo.connect(mongoUrl, {
   socketTimeoutMS: 1000,
 }, (err, client) => {
   if (err) {
-    console.error(`Error connecting to mongodb`);
+    console.error(`Error connecting to mongodb`, err);
     return;
   }
-  const db = client.db(process.env.MONGODB_DATABASE);
+  console.log("Connected to mongdb")
+  const db = client.db("votes");
   getVotes(db);
 });
 
