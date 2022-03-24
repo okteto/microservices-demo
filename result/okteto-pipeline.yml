@@ -1,0 +1,4 @@
+icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
+deploy:
+ - okteto build -t okteto.dev/result:${OKTETO_GIT_COMMIT}
+ - helm upgrade --install result chart --set image.tag=${OKTETO_GIT_COMMIT}
