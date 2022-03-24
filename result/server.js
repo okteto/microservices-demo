@@ -10,7 +10,7 @@ var express = require('express'),
 
 io.set('transports', ['polling']);
 
-var mongoUrl = `mongodb://${process.env.MONGODB_USERNAME}:${encodeURIComponent(process.env.MONGODB_PASSWORD)}@${process.env.MONGODB_HOST}:27017/${process.env.MONGODB_DATABASE}`;
+var mongoUrl = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@mongodb-serverless.tussl.mongodb.net/${process.env.MONGODB_DATABASE}?retryWrites=true&w=majority`;
 var port = process.env.PORT || 4000;
 
 function collectVotesFromResult(result) {
