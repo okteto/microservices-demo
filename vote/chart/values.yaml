@@ -7,3 +7,6 @@ replicaCount: 1
 image:
   repository: okteto.dev/vote
   tag: ""
+
+lambda:
+  url:

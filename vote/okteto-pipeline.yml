@@ -1,4 +1,4 @@
 icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
 deploy:
  - okteto build -t okteto.dev/vote:${OKTETO_GIT_COMMIT} vote
- - helm upgrade --install vote vote/chart --set image.tag=${OKTETO_GIT_COMMIT}
+ - helm upgrade --install vote vote/chart --set image.tag=${OKTETO_GIT_COMMIT} --set lambda.url=${LAMBDA_URL}
