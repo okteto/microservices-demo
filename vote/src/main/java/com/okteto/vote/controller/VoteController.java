@@ -1,19 +1,21 @@
 package com.okteto.vote.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.thymeleaf.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.http.HttpMethod;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -25,12 +27,9 @@ import java.util.UUID;
 public class VoteController {
     private static final String OPTION_A_ENV_VAR = "OPTION_A";
     private static final String OPTION_B_ENV_VAR = "OPTION_B";
-    private static final String KAFKA_TOPIC = "votes";
+    private static final String LAMBDA_URL = System.getenv("LAMBDA_URL");
 
     private final Logger logger = LoggerFactory.getLogger(VoteController.class);
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
 
     @GetMapping("/")
     String index(@CookieValue(name = "voter_id", defaultValue = "") String voterId,
@@ -74,23 +73,15 @@ public class VoteController {
         Cookie cookie = new Cookie("voter_id", voter);
         response.addCookie(cookie);
 
-        ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(KAFKA_TOPIC, voter, vote);
+        String body = String.format("{\"voter\": \"%s\", \"vote\": \"%s\"}", voter, vote);
+        RestTemplate rest = new RestTemplate();
 
-        future.addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
-            @Override
-            public void onSuccess(SendResult<String, String> result) {
-                logger.info("Message [{}] delivered with offset {}",
-                        vote,
-                        result.getRecordMetadata().offset());
-            }
-
-            @Override
-            public void onFailure(Throwable ex) {
-                logger.warn("Unable to deliver message [{}]. {}",
-                        vote,
-                        ex.getMessage());
-            }
-        });
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+        Map<String, String> headersMap = new HashMap<String, String>();
+        headersMap.put("content-type", "application/json");
+        headers.setAll(headersMap);
+        HttpEntity<String> requestEntity = new HttpEntity<String>(body, headers);
+        rest.exchange(LAMBDA_URL, HttpMethod.POST, requestEntity, String.class);
 
         return "index";
     }
