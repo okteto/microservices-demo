@@ -7,3 +7,8 @@ replicaCount: 1
 image:
   repository: okteto.dev/result
   tag: ""
+
+env:
+  username:
+  password:
+  database:

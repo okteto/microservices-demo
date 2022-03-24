@@ -20,3 +20,10 @@ spec:
         ports:
         - containerPort: 80
           name: result
+        env:
+        - name: MONGODB_USERNAME
+          value: {{ .Values.env.username }}
+        - name: MONGODB_PASSWORD
+          value: {{ .Values.env.password }}
+        - name: MONGODB_DATABASE
+          value: {{ .Values.env.database }}
