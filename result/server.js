@@ -16,7 +16,7 @@ var port = process.env.PORT || 4000;
 function collectVotesFromResult(result) {
   var votes = { a: 0, b: 0 };
   result.forEach(function(row) {
-    votes[row.vote] += 1;
+    votes[JSON.parse(row.body).vote] += 1;
   });
   return votes;
 }
@@ -54,7 +54,7 @@ mongo.connect(mongoUrl, {
     return;
   }
   console.log("Connected to mongdb")
-  const db = client.db("votes");
+  const db = client.db(process.env.MONGODB_DATABASE);
   getVotes(db);
 });
 
