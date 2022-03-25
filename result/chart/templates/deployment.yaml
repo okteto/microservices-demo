@@ -27,3 +27,5 @@ spec:
           value: {{ .Values.env.password }}
         - name: MONGODB_DATABASE
           value: {{ .Values.env.database }}
+        - name: MONGODB_HOST
+          value: {{ .Values.env.host }}

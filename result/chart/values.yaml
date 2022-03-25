@@ -12,3 +12,4 @@ env:
   username:
   password:
   database:
+  host:
