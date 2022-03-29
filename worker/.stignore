@@ -19,3 +19,6 @@ __debug_bin
 
 # worker binary
 worker
+
+/database
+/kafka

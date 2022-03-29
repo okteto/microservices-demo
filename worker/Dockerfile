@@ -1,6 +1,6 @@
 FROM golang:1.17-buster as dev
 
-COPY bashrc /root/.bashrc
+COPY worker/bashrc /root/.bashrc
 
 RUN go get github.com/codegangsta/gin && \
     go get -u github.com/go-delve/delve/cmd/dlv && \
@@ -9,8 +9,10 @@ RUN go get github.com/codegangsta/gin && \
 
 WORKDIR /app
 
-ADD . .
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker main.go
+ADD worker/ .
+ADD go-dependencies/ .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker main.go
 
 FROM scratch
 

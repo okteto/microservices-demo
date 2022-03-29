@@ -3,15 +3,14 @@ icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
 build:
   result:
     context: result
-
   vote:
     context: vote
-
   worker:
-    context: worker
-
+    context: .
+    dockerfile: worker/Dockerfile
   dev:
-    context: worker
+    context: .
+    dockerfile: worker/Dockerfile
     target: dev
 
 deploy:
@@ -26,16 +25,12 @@ dev:
   vote:
     command: ./mvnw spring-boot:run
     sync:
-      - ./vote:/app
-    persistentVolume:
-      enabled: false
+      - vote:/app
 
   result:
     command: nodemon server.js
     sync:
-      - ./result:/app
-    persistentVolume:
-      enabled: false
+      - result:/app
 
   worker:
     image: ${OKTETO_BUILD_DEV_IMAGE}
@@ -45,8 +40,10 @@ dev:
         add:
         - SYS_PTRACE
     sync:
-      - ./worker:/app
+      - worker:/app
+      - go-dependencies/database:/app/database
+      - go-dependencies/kafka:/app/kafka
+    secrets:
+      - README.md:/tmp/README.md
     forward:
       - 2345:2345
-    persistentVolume:
-      enabled: false
