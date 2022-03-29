@@ -63,11 +63,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<configuration>
-				<jvmArguments>
-					-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
-				</jvmArguments>
-			</configuration>
 		</plugins>
 	</build>
 
