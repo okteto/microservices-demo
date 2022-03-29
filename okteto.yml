@@ -20,6 +20,7 @@ deploy:
   - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
   - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
   - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
+  - [[ ${OKTETO_RUN_TEST} = 'true' ]] && make test
 
 dev:
   vote:
