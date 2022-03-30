@@ -21,3 +21,4 @@ jobs:
         name: pr-${{ github.event.number }}
         scope: global
         variables: OKTETO_RUN_TEST=true
+        timeout: 15m
