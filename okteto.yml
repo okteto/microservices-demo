@@ -31,19 +31,13 @@ deploy:
 
 dev:
   result:
-    command:
-      - sh
-      - -c
-      - nodemon server.js
+    command: nodemon server.js
     sync:
       - result:/app
     persistentVolume:
       enabled: false
   vote:
-    command:
-      - sh
-      - -c
-      - mvn spring-boot:run
+    command: mvn spring-boot:run
     sync:
       - vote:/app
     forward:
