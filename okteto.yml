@@ -1,23 +1,9 @@
 name: microservices-demo
-
-# The build section defines how to build the images of your development environment
-# More info: https://www.okteto.com/docs/reference/manifest/#build
 build:
-
-  # You can use the following env vars to refer to this image in your deploy commands:
-  #  - OKTETO_BUILD_RESULT_REGISTRY: image registry
-  #  - OKTETO_BUILD_RESULT_REPOSITORY: image repo
-  #  - OKTETO_BUILD_RESULT_IMAGE: image name
-  #  - OKTETO_BUILD_RESULT_TAG: image tag
   result:
     context: result
     dockerfile: result/Dockerfile
 
-  # You can use the following env vars to refer to this image in your deploy commands:
-  #  - OKTETO_BUILD_VOTE_REGISTRY: image registry
-  #  - OKTETO_BUILD_VOTE_REPOSITORY: image repo
-  #  - OKTETO_BUILD_VOTE_IMAGE: image name
-  #  - OKTETO_BUILD_VOTE_TAG: image tag
   vote:
     context: vote
     dockerfile: vote/Dockerfile
@@ -25,6 +11,11 @@ build:
   worker:
     context: worker
     dockerfile: worker/Dockerfile
+
+  worker-dev:
+    context: worker
+    dockerfile: worker/Dockerfile
+    target: dev
 
 deploy:
   - helm repo add bitnami https://charts.bitnami.com/bitnami
