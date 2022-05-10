@@ -1,8 +1,0 @@
-name: vote
-command: mvn spring-boot:run
-sync:
-  - .:/app
-forward:
-  - 5005:5005
-persistentVolume:
-  enabled: false
