@@ -15,3 +15,5 @@
 # vendor/
 
 /vote/target
+/vote/.idea
+/vote/vote.iml
