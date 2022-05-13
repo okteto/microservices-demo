@@ -2,4 +2,4 @@ icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
 deploy:
  - okteto build -t okteto.dev/result:${OKTETO_GIT_COMMIT}
  - echo connecting to $MONGODB_HOST
- - helm upgrade --install result chart --set image.tag=${OKTETO_GIT_COMMIT} --set env.username=${MONGODB_USERNAME} --set env.password=${MONGODB_PASSWORD} --set env.database=${MONGODB_DATABASE} --set env.host=${MONGODB_HOST}
+ - helm upgrade --install result chart --set image.tag=${OKTETO_GIT_COMMIT} --set env.username=${MONGODB_USERNAME} --set env.password=${MONGODB_PASSWORD} --set env.database=${MONGODB_DATABASE} --set env.host=${DB_HOST}
