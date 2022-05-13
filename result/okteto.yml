@@ -1,6 +1,0 @@
-name: result
-command: nodemon server.js
-sync:
-  - .:/app
-persistentVolume:
-  enabled: false
