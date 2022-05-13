@@ -1,60 +1,54 @@
-name: microservices-demo
+icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
+
 build:
   result:
     context: result
-    dockerfile: result/Dockerfile
 
   vote:
     context: vote
-    dockerfile: vote/Dockerfile
 
   worker:
     context: worker
-    dockerfile: worker/Dockerfile
 
-  worker-dev:
+  dev:
     context: worker
-    dockerfile: worker/Dockerfile
     target: dev
 
 deploy:
   - helm repo add bitnami https://charts.bitnami.com/bitnami
   - helm upgrade --install postgresql bitnami/postgresql -f postgresql/values.yml --version 10.16.2
   - helm upgrade --install kafka bitnami/kafka -f kafka/values.yml --version 14.5.0
-  - okteto build -t okteto.dev/result:${OKTETO_GIT_COMMIT} result
-  - helm upgrade --install result result/chart --set image.tag=${OKTETO_GIT_COMMIT}
-  - okteto build -t okteto.dev/vote:${OKTETO_GIT_COMMIT} vote
-  - helm upgrade --install vote vote/chart --set image.tag=${OKTETO_GIT_COMMIT}
-  - okteto build -t okteto.dev/worker:${OKTETO_GIT_COMMIT} worker
-  - okteto build -t okteto.dev/worker:dev --target dev worker
-  - helm upgrade --install worker worker/chart --set image.tag=${OKTETO_GIT_COMMIT}
+  - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
+  - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
+  - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
 
 dev:
+  vote:
+    command: ./mvnw spring-boot:run
+    sync:
+      - ./vote:/app
+    forward:
+    - 5005:5005 
+    persistentVolume:
+      enabled: false
+
   result:
     command: nodemon server.js
     sync:
-      - result:/app
+      - ./result:/app
     persistentVolume:
       enabled: false
-  vote:
-    command: mvn spring-boot:run
-    sync:
-      - vote:/app
-    forward:
-      - 5005:5005
-    persistentVolume:
-      enabled: false
+
   worker:
-    image: okteto.dev/worker:dev
+    image: ${OKTETO_BUILD_DEV_IMAGE}
     command: bash
     securityContext:
       capabilities:
         add:
-          - SYS_PTRACE
+        - SYS_PTRACE
     sync:
-      - worker:/app
+      - ./worker:/app
     forward:
       - 2345:2345
     persistentVolume:
       enabled: false
-

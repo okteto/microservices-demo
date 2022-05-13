@@ -15,5 +15,5 @@ spec:
         app: worker
     spec:
       containers:
-      - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+      - image: {{ .Values.image }}
         name: worker
