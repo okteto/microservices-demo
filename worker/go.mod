@@ -1,6 +1,6 @@
 module github.com/okteto/microservicees-demo/worker
 
-go 1.17
+go 1.18
 
 require (
 	github.com/Shopify/sarama v1.30.0
