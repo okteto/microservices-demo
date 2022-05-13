@@ -27,6 +27,8 @@ dev:
     command: ./mvnw spring-boot:run
     sync:
       - ./vote:/app
+    forward:
+    - 5005:5005 
     persistentVolume:
       enabled: false
 
@@ -34,8 +36,6 @@ dev:
     command: nodemon server.js
     sync:
       - ./result:/app
-    forward:
-      - 2345:2345
     persistentVolume:
       enabled: false
 
