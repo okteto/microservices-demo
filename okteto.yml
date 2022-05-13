@@ -24,7 +24,7 @@ deploy:
 
 dev:
   vote:
-    command: ./mvnw spring-boot:run
+    command: mvn spring-boot:run
     sync:
       - ./vote:/app
     forward:
