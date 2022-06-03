@@ -17,7 +17,7 @@ build:
 deploy:
   - helm repo add bitnami https://charts.bitnami.com/bitnami
   - helm upgrade --install postgresql bitnami/postgresql -f postgresql/values.yml --version 11.6.2
-  - helm upgrade --install kafka bitnami/kafka --version 17.1.0
+  - helm upgrade --install kafka bitnami/kafka --version 17.1.0 -f kafka/values.yml
   - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
   - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
   - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
@@ -28,7 +28,7 @@ dev:
     sync:
       - ./vote:/app
     forward:
-    - 5005:5005 
+    - 5005:5005
     persistentVolume:
       enabled: false
 
