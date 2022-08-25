@@ -22,6 +22,7 @@ deploy:
   - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
 
 dev:
+
   vote:
     command: mvn spring-boot:run
     sync:
