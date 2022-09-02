@@ -3,15 +3,19 @@ icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
 build:
   result:
     context: result
+    dockerfile: Dockerfile
 
   vote:
     context: vote
+    dockerfile: Dockerfile
 
   worker:
     context: worker
+    dockerfile: Dockerfile
 
   dev:
     context: worker
+    dockerfile: Dockerfile
     target: dev
 
 deploy:
