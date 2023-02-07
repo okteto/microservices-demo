@@ -39,6 +39,8 @@ dev:
     command: nodemon server.js
     sync:
       - ./result:/app
+    forward:
+      - "9229:9229"
     persistentVolume:
       enabled: false
 
