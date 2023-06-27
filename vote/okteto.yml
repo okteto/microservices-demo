@@ -1,0 +1,7 @@
+build:
+  vote:
+    context: .
+    dockerfile: Dockerfile
+
+deploy:
+  - helm upgrade --install vote chart --set image=${OKTETO_BUILD_VOTE_IMAGE}

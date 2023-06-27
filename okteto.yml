@@ -1,14 +1,6 @@
 icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
 
 build:
-  result:
-    context: result
-    dockerfile: Dockerfile
-
-  vote:
-    context: vote
-    dockerfile: Dockerfile
-
   worker:
     context: worker
     dockerfile: Dockerfile
@@ -19,10 +11,10 @@ build:
     target: dev
 
 deploy:
+  - okteto pipeline deploy -r https://github.com/okteto/microservices-demo --branch ${OKTETO_GIT_BRANCH} -f result/okteto.yml --name result
+  - okteto pipeline deploy -r https://github.com/okteto/microservices-demo --branch ${OKTETO_GIT_BRANCH} -f vote/okteto.yml --name vote
   - helm upgrade --install postgresql postgresql/postgresql-11.6.2.tgz -f postgresql/values.yml
   - helm upgrade --install kafka kafka/kafka-17.1.0.tgz -f kafka/values.yml
-  - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
-  - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
   - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
 
 dev:

@@ -1,0 +1,7 @@
+build:
+  result:
+    context: .
+    dockerfile: Dockerfile
+
+deploy:
+  - helm upgrade --install result chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
