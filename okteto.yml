@@ -27,16 +27,15 @@ deploy:
 
 forward:
   - 5432:postgresql:5432
+  - 9092:kafka:9092
 
 dev:
   vote:
-    command: mvn spring-boot:run
-    sync:
-      - ./vote:/app
-    forward:
-    - 5005:5005
-    persistentVolume:
-      enabled: false
+    mode: hybrid
+    command: bash # mvn spring-boot:run
+    workdir: vote
+    reverse:
+    - 8080:8080
 
   result:
     command: nodemon server.js
