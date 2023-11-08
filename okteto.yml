@@ -25,6 +25,9 @@ deploy:
   - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
   - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
 
+forward:
+  - 5432:postgresql:5432
+
 dev:
   vote:
     command: mvn spring-boot:run
