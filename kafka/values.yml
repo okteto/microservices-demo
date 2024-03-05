@@ -1,3 +1,6 @@
+controller:
+  replicaCount: 1
+
 zookeeper:
   persistence:
     size: 1Gi
