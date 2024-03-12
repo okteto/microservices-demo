@@ -2,15 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach",
+            "name": "result",
             "type": "node",
             "request": "attach",
             "port": 5858,
             "address": "localhost",
             "restart": true,
             "sourceMaps": false,
-            "outDir": null,
-            "localRoot": "${workspaceRoot}",
+            "localRoot": "${workspaceRoot}/result",
             "remoteRoot": "/app",
             "timeout": 10000
         }

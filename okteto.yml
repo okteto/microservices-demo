@@ -39,9 +39,11 @@ dev:
       enabled: false
 
   result:
-    command: nodemon server.js
+    command: npm run start
     sync:
       - ./result:/app
+    forward:
+    - 5858:5858
     persistentVolume:
       enabled: false
 
