@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-11
+FROM maven:3.9.7-eclipse-temurin-22
 
 WORKDIR /app
 COPY . .
