@@ -1,4 +1,4 @@
-FROM golang:buster as dev
+FROM golang:1.23.4-bookworm AS dev
 
 COPY bashrc /root/.bashrc
 
