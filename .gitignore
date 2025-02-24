@@ -17,3 +17,6 @@
 /vote/target
 /vote/.idea
 /vote/vote.iml
+
+node_modules
+screenshots

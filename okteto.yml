@@ -58,3 +58,18 @@ dev:
       - 2345:2345
     persistentVolume:
       enabled: false
+test:
+  e2e:
+    # We use this image because it already has cypress installed, saving us time
+    image: cypress/included:14.0.3
+    caches:
+      - .npm
+      - node_modules
+    context: e2e
+    commands:
+      # set the cache to the folder defined in test.e2e.caches
+      - npm ci --cache .npm
+      # run tests
+      - cypress run --env voteUrl="https://vote-$OKTETO_NAMESPACE.$OKTETO_DOMAIN",resultUrl="https://result-$OKTETO_NAMESPACE.$OKTETO_DOMAIN"
+    artifacts:
+      - cypress/screenshots 
