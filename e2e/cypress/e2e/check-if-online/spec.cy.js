@@ -17,7 +17,7 @@ it('i love burritos', () => {
     // Assert that the button is disabled
     cy.get('#a').should('be.disabled');
 
-    // Assert that checkbox was displayed
+    // Assert that checkmark was displayed after voting
     cy.get('#a')
       .find('i')
       .should('exist')
