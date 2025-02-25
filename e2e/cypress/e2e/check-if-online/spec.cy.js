@@ -5,7 +5,7 @@ it('check that vote has the right title', () => {
     cy.title().should('eq', 'Burritos vs Tacos!')
 })
 
-it.only('i love burritos', () => {
+it('i love burritos', () => {
     cy.visit(Cypress.env('voteUrl'))
     cy.title().should('eq', 'Burritos vs Tacos!')
     
