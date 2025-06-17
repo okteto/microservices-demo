@@ -1,60 +1,11 @@
 icon: https://github.com/okteto/microservices-demo/raw/main/vote-icon.png
 
 build:
-  result:
-    context: result
-    dockerfile: Dockerfile
 
   vote:
     context: vote
     dockerfile: Dockerfile
 
-  worker:
-    context: worker
-    dockerfile: Dockerfile
-
-  dev:
-    context: worker
-    dockerfile: Dockerfile
-    target: dev
-
 deploy:
-  - helm upgrade --install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql -f postgresql/values.yml --version 13.4.4
-  - helm upgrade --install kafka oci://registry-1.docker.io/bitnamicharts/kafka -f kafka/values.yml --version 26.8.3
   - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
-  - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
-  - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
 
-forward:
-  - 5432:postgresql:5432
-
-dev:
-  vote:
-    command: mvn spring-boot:run
-    sync:
-      - ./vote:/app
-    forward:
-    - 5005:5005
-    persistentVolume:
-      enabled: false
-
-  result:
-    command: nodemon server.js
-    sync:
-      - ./result:/app
-    persistentVolume:
-      enabled: false
-
-  worker:
-    image: ${OKTETO_BUILD_DEV_IMAGE}
-    command: bash
-    securityContext:
-      capabilities:
-        add:
-        - SYS_PTRACE
-    sync:
-      - ./worker:/app
-    forward:
-      - 2345:2345
-    persistentVolume:
-      enabled: false
