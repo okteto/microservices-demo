@@ -1,0 +1,6 @@
+apiVersion: v2
+name: infrastructure
+description: Infrastructure services for microservices demo (PostgreSQL and Kafka)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
