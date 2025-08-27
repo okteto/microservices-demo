@@ -19,7 +19,7 @@ postgresql:
 
 kafka:
   image:
-    repository: bitnami/kafka
+    repository: apache/kafka
     tag: "3.7.0"
     pullPolicy: IfNotPresent
   
@@ -32,8 +32,7 @@ kafka:
     port: 9092
   
   config:
-    # Kafka configuration for Bitnami Kafka in KRaft mode
-    enableKraft: "yes"
+    # Kafka configuration for Apache Kafka in KRaft mode
     nodeId: 1
     processRoles: "broker,controller"
     controllerQuorumVoters: "1@localhost:9093"

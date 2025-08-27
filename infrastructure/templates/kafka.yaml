@@ -1,3 +1,43 @@
+{{- if .Values.kafka.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-data
+  labels:
+    app: kafka
+    component: messaging
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.kafka.persistence.size }}
+  {{- if .Values.kafka.persistence.storageClass }}
+  storageClassName: {{ .Values.kafka.persistence.storageClass }}
+  {{- end }}
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+    component: messaging
+spec:
+  type: ClusterIP
+  ports:
+  - name: kafka
+    port: {{ .Values.kafka.service.port }}
+    targetPort: kafka
+    protocol: TCP
+  - name: controller
+    port: 9093
+    targetPort: controller
+    protocol: TCP
+  selector:
+    app: kafka
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,10 +60,10 @@ spec:
       initContainers:
       - name: fix-permissions
         image: busybox:1.35
-        command: ['sh', '-c', 'chown -R 1001:1001 /bitnami/kafka/data && rm -rf /bitnami/kafka/data/lost+found']
+        command: ['sh', '-c', 'chown -R 1000:1000 /opt/kafka/data && rm -rf /opt/kafka/data/lost+found']
         volumeMounts:
         - name: data
-          mountPath: /bitnami/kafka/data
+          mountPath: /opt/kafka/data
         securityContext:
           runAsUser: 0
       {{- end }}
@@ -32,24 +72,22 @@ spec:
         image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
         imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
         env:
-        - name: KAFKA_ENABLE_KRAFT
-          value: "{{ .Values.kafka.config.enableKraft }}"
-        - name: KAFKA_CFG_NODE_ID
+        - name: KAFKA_NODE_ID
           value: "{{ .Values.kafka.config.nodeId }}"
-        - name: KAFKA_CFG_PROCESS_ROLES
+        - name: KAFKA_PROCESS_ROLES
           value: "{{ .Values.kafka.config.processRoles }}"
-        - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
           value: "{{ .Values.kafka.config.controllerQuorumVoters }}"
-        - name: KAFKA_CFG_LISTENERS
+        - name: KAFKA_LISTENERS
           value: "{{ .Values.kafka.config.listeners }}"
-        - name: KAFKA_CFG_ADVERTISED_LISTENERS
+        - name: KAFKA_ADVERTISED_LISTENERS
           value: "{{ .Values.kafka.config.advertisedListeners }}"
-        - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES
           value: "{{ .Values.kafka.config.controllerListenerNames }}"
-        - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
           value: "{{ .Values.kafka.config.listenerSecurityProtocolMap }}"
-        - name: KAFKA_CFG_LOG_DIRS
-          value: /bitnami/kafka/data
+        - name: KAFKA_LOG_DIRS
+          value: /opt/kafka/data
         ports:
         - name: kafka
           containerPort: {{ .Values.kafka.service.port }}
@@ -76,7 +114,7 @@ spec:
         {{- if .Values.kafka.persistence.enabled }}
         volumeMounts:
         - name: data
-          mountPath: /bitnami/kafka/data
+          mountPath: /opt/kafka/data
         {{- end }}
         resources:
           limits:
