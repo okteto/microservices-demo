@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  labels:
+    app: kafka
+    component: messaging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+        component: messaging
+    spec:
+      {{- if .Values.kafka.persistence.enabled }}
+      initContainers:
+      - name: fix-permissions
+        image: busybox:1.35
+        command: ['sh', '-c', 'chown -R 1001:1001 /bitnami/kafka/data && rm -rf /bitnami/kafka/data/lost+found']
+        volumeMounts:
+        - name: data
+          mountPath: /bitnami/kafka/data
+        securityContext:
+          runAsUser: 0
+      {{- end }}
+      containers:
+      - name: kafka
+        image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
+        imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
+        env:
+        - name: KAFKA_ENABLE_KRAFT
+          value: "{{ .Values.kafka.config.enableKraft }}"
+        - name: KAFKA_CFG_NODE_ID
+          value: "{{ .Values.kafka.config.nodeId }}"
+        - name: KAFKA_CFG_PROCESS_ROLES
+          value: "{{ .Values.kafka.config.processRoles }}"
+        - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+          value: "{{ .Values.kafka.config.controllerQuorumVoters }}"
+        - name: KAFKA_CFG_LISTENERS
+          value: "{{ .Values.kafka.config.listeners }}"
+        - name: KAFKA_CFG_ADVERTISED_LISTENERS
+          value: "{{ .Values.kafka.config.advertisedListeners }}"
+        - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+          value: "{{ .Values.kafka.config.controllerListenerNames }}"
+        - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "{{ .Values.kafka.config.listenerSecurityProtocolMap }}"
+        - name: KAFKA_CFG_LOG_DIRS
+          value: /bitnami/kafka/data
+        ports:
+        - name: kafka
+          containerPort: {{ .Values.kafka.service.port }}
+          protocol: TCP
+        - name: controller
+          containerPort: 9093
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.kafka.service.port }}
+          initialDelaySeconds: 180
+          periodSeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.kafka.service.port }}
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        {{- if .Values.kafka.persistence.enabled }}
+        volumeMounts:
+        - name: data
+          mountPath: /bitnami/kafka/data
+        {{- end }}
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+      {{- if .Values.kafka.persistence.enabled }}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: kafka-data
+      {{- end }}

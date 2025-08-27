@@ -19,8 +19,7 @@ build:
     target: dev
 
 deploy:
-  - helm upgrade --install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql -f postgresql/values.yml --version 13.4.4
-  - helm upgrade --install kafka oci://registry-1.docker.io/bitnamicharts/kafka -f kafka/values.yml --version 26.8.3
+  - helm upgrade --install infrastructure infrastructure/
   - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
   - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
   - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
