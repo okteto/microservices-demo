@@ -9,11 +9,11 @@ RUN go install github.com/codegangsta/gin@latest && \
     go install golang.org/x/tools/gopls@latest && \
     curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b /usr/bin
 
-ADD go.mod go.sum ./
-RUN go mod download all
+ADD go.mod ./
+RUN go mod download
 
 ADD . .
-RUN go get
+RUN go mod tidy
 
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker main.go
 

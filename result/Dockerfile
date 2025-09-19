@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:22-slim
 
 # add curl for healthcheck
 RUN apt-get update \
@@ -20,7 +20,7 @@ RUN npm install -g nodemon
 
 COPY package*.json ./
 
-RUN npm ci \
+RUN npm install \
  && npm cache clean --force \
  && mv /app/node_modules /node_modules
 
