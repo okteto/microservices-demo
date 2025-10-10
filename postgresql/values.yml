@@ -1,8 +1,0 @@
-auth:
-  username: okteto
-  password: okteto
-  database: votes
-
-primary:
-  persistence:
-    size: 1Gi
