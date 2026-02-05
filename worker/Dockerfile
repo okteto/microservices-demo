@@ -1,13 +1,13 @@
-FROM golang:1.24.2-bookworm AS dev
+FROM golang:1.24.1-bookworm AS dev
 
 COPY bashrc /root/.bashrc
 
 WORKDIR /app
 
-RUN go install github.com/codegangsta/gin@latest && \
-    go install github.com/go-delve/delve/cmd/dlv@latest && \
-    go install golang.org/x/tools/gopls@latest && \
-    curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b /usr/bin
+RUN go install github.com/codegangsta/gin@v0.0.0-20230218063734-2c98d96c9244 && \
+    go install github.com/go-delve/delve/cmd/dlv@v1.24.0 && \
+    go install golang.org/x/tools/gopls@v0.17.1 && \
+    go install github.com/air-verse/air@v1.61.5
 
 ADD go.mod ./
 RUN go mod download
