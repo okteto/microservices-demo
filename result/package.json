@@ -9,12 +9,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "async": "^3.2.6",
-    "cookie-parser": "^1.4.7",
-    "express": "^4.21.2",
-    "method-override": "^3.0.0",
-    "pg": "^8.13.1",
-    "socket.io": "^4.8.1",
-    "stoppable": "^1.1.0"
+    "async": "3.2.6",
+    "cookie-parser": "1.4.7",
+    "express": "4.21.2",
+    "method-override": "3.0.0",
+    "pg": "8.13.1",
+    "socket.io": "4.8.1",
+    "stoppable": "1.1.0"
   }
 }

@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:22.12.0-slim
 
 # add curl for healthcheck
 RUN apt-get update \
@@ -9,14 +9,14 @@ RUN apt-get update \
 ARG TARGETARCH
 
 # Add Tini for proper init of signals
-ENV TINI_VERSION v0.19.0
+ENV TINI_VERSION=v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
 RUN chmod +x /tini
 
 WORKDIR /app
 
 # have nodemon available for local dev use (file watching)
-RUN npm install -g nodemon
+RUN npm install -g nodemon@3.1.7
 
 COPY package*.json ./
 
