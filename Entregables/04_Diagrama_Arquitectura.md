@@ -1,128 +1,26 @@
-# 4. Diagrama de Arquitectura (15.0%)
+# 4. Diagrama de Arquitectura
 
-## Visión General
+## Diagrama del Sistema
 
-El proyecto **microservices-demo** implementa una aplicación de votación distribuida con 5 componentes desplegados en un clúster de Kubernetes, orquestados mediante Helm y gestionados con Okteto.
-
----
-
-## Diagrama de Arquitectura de Alto Nivel
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        Kubernetes Cluster (Okteto Cloud)                    │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │                         Namespace: okteto                            │   │
-│  │                                                                      │   │
-│  │   ┌─────────────┐        ┌─────────────┐       ┌────────────────┐   │   │
-│  │   │  Vote Pod    │        │  Kafka Pod  │       │  Worker Pod    │   │   │
-│  │   │             │        │             │       │                │   │   │
-│  │   │ Java 22     │ Produce│ Apache Kafka│Consume│ Go 1.24        │   │   │
-│  │   │ Spring Boot │───────►│ 3.7.0       │──────►│ Sarama Client  │   │   │
-│  │   │ Port: 8080  │ topic: │ KRaft mode  │ topic:│                │   │   │
-│  │   │             │ "votes"│ Port: 9092  │"votes"│                │   │   │
-│  │   └──────┬──────┘        └─────────────┘       └───────┬────────┘   │   │
-│  │          │                                             │            │   │
-│  │          │ Sirve UI votación                           │ INSERT/    │   │
-│  │          │ (Thymeleaf)                                 │ UPDATE     │   │
-│  │          │                                             ▼            │   │
-│  │          │                                     ┌────────────────┐   │   │
-│  │          │                                     │ PostgreSQL Pod │   │   │
-│  │          │                                     │                │   │   │
-│  │          │                                     │ PostgreSQL 16  │   │   │
-│  │          │                                     │ DB: votes      │   │   │
-│  │          │                                     │ Port: 5432     │   │   │
-│  │          │                                     │   ┌──────────┐ │   │   │
-│  │          │                                     │   │ PVC 1Gi  │ │   │   │
-│  │          │                                     │   └──────────┘ │   │   │
-│  │          │                                     └───────┬────────┘   │   │
-│  │          │                                             │            │   │
-│  │          │                                    SELECT   │            │   │
-│  │          │                                    (polling)│            │   │
-│  │          │                                             │            │   │
-│  │          │                                     ┌───────┴────────┐   │   │
-│  │          │                                     │  Result Pod    │   │   │
-│  │          │                                     │                │   │   │
-│  │          │                                     │ Node.js        │   │   │
-│  │          │                                     │ Express        │   │   │
-│  │          │                                     │ Socket.io      │   │   │
-│  │          │                                     │ Port: 4000     │   │   │
-│  │          │                                     └───────┬────────┘   │   │
-│  │          │                                             │            │   │
-│  └──────────┼─────────────────────────────────────────────┼────────────┘   │
-│             │                                             │                │
-│  ┌──────────┴──────────────┐           ┌──────────────────┴──────────┐     │
-│  │  Kubernetes Service     │           │  Kubernetes Service         │     │
-│  │  vote (LoadBalancer)    │           │  result (LoadBalancer)      │     │
-│  │  External Port: 8080   │           │  External Port: 4000       │     │
-│  └──────────┬──────────────┘           └──────────────────┬──────────┘     │
-└─────────────┼────────────────────────────────────────────┼─────────────────┘
-              │                                            │
-              ▼                                            ▼
-      ┌───────────────┐                           ┌───────────────┐
-      │   Usuario     │                           │  Espectador   │
-      │   (Votante)   │                           │  (Resultados) │
-      │   Navegador   │                           │  Navegador    │
-      │   HTTP POST   │                           │  WebSocket    │
-      └───────────────┘                           └───────────────┘
-```
+![Diagrama de Arquitectura](../architecture.png)
 
 ---
 
-## Flujo de Datos Detallado
+## Descripción de Componentes
 
-```
-1. Usuario accede a Vote (HTTP GET /)
-   → Se genera cookie voter_id (UUID)
-   → Se renderiza formulario HTML (Thymeleaf)
+El sistema se compone de cinco piezas fundamentales:
 
-2. Usuario vota (HTTP POST /)
-   → VoteController lee cookie voter_id
-   → Envía mensaje a Kafka: key=voter_id, value="a" o "b"
-
-3. Worker consume mensajes de Kafka
-   → Lee del tópico "votes" (partición 0, offset más antiguo)
-   → Ejecuta: INSERT INTO votes (id, vote) VALUES ($1, $2)
-              ON CONFLICT(id) DO UPDATE SET vote = $2
-
-4. Result hace polling a PostgreSQL cada 1 segundo
-   → SELECT vote, COUNT(id) AS count FROM votes GROUP BY vote
-   → Emite resultados vía Socket.io a todos los clientes conectados
-
-5. Navegador del espectador recibe evento "scores"
-   → Actualiza gráfico de barras en tiempo real
-```
+1.  **Frontend de Votación (Vote):** Permite a los usuarios elegir entre dos opciones. Desarrollado en Java con Spring Boot.
+2.  **Mensajería (Kafka):** Broker de mensajes que recibe los votos del frontend de forma asíncrona.
+3.  **Procesador (Worker):** Servicio en Go que consume mensajes de Kafka y los persiste en la base de datos PostgreSQL.
+4.  **Base de Datos (PostgreSQL):** Almacenamiento persistente de los votos.
+5.  **Frontend de Resultados (Result):** Interfaz en Node.js que muestra los resultados en tiempo real consultando a PostgreSQL.
 
 ---
 
-## Esquema de la Base de Datos
+## Flujo de Datos
 
-```sql
-CREATE TABLE IF NOT EXISTS votes (
-    id   VARCHAR(255) NOT NULL UNIQUE,  -- voter_id (UUID del cliente)
-    vote VARCHAR(255) NOT NULL          -- "a" o "b" (opción elegida)
-);
-```
-
----
-
-## Componentes de Infraestructura (Helm Charts)
-
-| Componente | Chart | Imagen | Puerto | Persistencia |
-|------------|-------|--------|--------|-------------|
-| PostgreSQL | `infrastructure/` | `postgres:16` | 5432 | PVC 1Gi |
-| Kafka | `infrastructure/` | `apache/kafka:3.7.0` | 9092 | PVC 1Gi |
-| Vote | `vote/chart/` | Custom (Dockerfile) | 8080 | No |
-| Result | `result/chart/` | Custom (Dockerfile) | 4000 | No |
-| Worker | `worker/chart/` | Custom (Dockerfile) | — | No |
-
----
-
-## Puertos Expuestos en Desarrollo (Okteto)
-
-| Puerto Local | Servicio | Uso |
-|-------------|----------|-----|
-| 5005 | Vote (Java) | Debugger remoto JDWP |
-| 2345 | Worker (Go) | Debugger remoto Delve |
-| 5432 | PostgreSQL | Acceso directo a BD |
+1.  El usuario envía un voto a través de la interfaz web de `vote`.
+2.  El servicio `vote` publica un mensaje en el tópico `votes` de **Kafka**.
+3.  El servicio `worker` detecta el nuevo mensaje, lo procesa e inserta el registro en **PostgreSQL**.
+4.  El servicio `result` lee continuamente la base de datos y actualiza la interfaz de usuario mediante **WebSockets** (Socket.io).

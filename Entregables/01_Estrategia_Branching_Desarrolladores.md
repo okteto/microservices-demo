@@ -1,133 +1,69 @@
 # 1. Estrategia de Branching para Desarrolladores
 
-## Modelo elegido: GitHub Flow
+## Modelo elegido: GitHub Flow (Ciclo de Vida Ágil)
 
-Se adopta **GitHub Flow** por su simplicidad y compatibilidad con pipelines CI/CD, ideal para un equipo ágil que trabaja con microservicios.
-
-
-## Ramas Principales
-
-| Rama | Propósito | Protegida |
-|------|-----------|-----------|
-| `main` | Código estable, listo para producción | Sí |
-| `feature/<nombre>` | Desarrollo de nuevas funcionalidades |  No |
-| `bugfix/<nombre>` | Corrección de errores detectados |  No |
-| `hotfix/<nombre>` | Correcciones urgentes en producción | No |
+Se adopta **GitHub Flow** para maximizar la velocidad de integración y despliegue continuo (CI/CD), permitiendo que cada microservicio evolucione de forma independiente pero manteniendo la estabilidad de `main`.
 
 ---
 
-## Convención de Nombres de Ramas
+## Ramas y Nomenclatura del Proyecto
 
-```
-feature/vote-cambiar-opciones
-feature/result-mejorar-ui
-bugfix/worker-conexion-kafka
-hotfix/vote-cookie-duplicada
-```
+| Rama | Propósito | Prefijo | Protegida |
+|------|-----------|---------|-----------|
+| `main` | Rama productiva, código estable y desplegable. | - |  Sí |
+| **Funcionalidad** | Nuevas características o patrones. | `feature/` |  No |
+| **Refactorización**| Mejoras de arquitectura sin cambio lógico. | `refactor/` |  No |
+| **Corrección** | Arreglo de bugs detectados en dev. | `bugfix/` |  No |
+| **Urgente** | Arreglo de bugs en producción. | `hotfix/` |  No |
 
-Formato: `<tipo>/<microservicio>-<descripcion-corta>`
-
----
-
-## Flujo de Trabajo
-
-```
-main ──────────────────────────────────────────► (producción)
-  │                                        ▲
-  └── feature/vote-nueva-opcion ──► PR ────┘
-       (desarrollo individual)    (revisión)
-```
-
-### Paso a paso:
-
-1. **Crear rama** desde `main`:
-   ```bash
-   git checkout main
-   git pull origin main
-   git checkout -b feature/vote-nueva-opcion
-   ```
-
-2. **Desarrollar** realizando commits pequeños y descriptivos:
-   ```bash
-   git add .
-   git commit -m "feat(vote): agregar tercera opción de votación"
-   ```
-
-3. **Subir la rama** al repositorio remoto:
-   ```bash
-   git push origin feature/vote-nueva-opcion
-   ```
-
-4. **Crear Pull Request (PR)** hacia `main`:
-   - Título descriptivo.
-   - Descripción del cambio.
-   - Asignar al menos un revisor.
-
-5. **Revisión de código (Code Review)**:
-   - Mínimo 1 aprobación requerida.
-   - El pipeline CI debe pasar (build + tests).
-
-6. **Merge a `main`**:
-   - Usar **Squash and Merge** para mantener el historial limpio.
-   - Eliminar la rama después del merge.
+### Ejemplo Real de Nombres (Casos de Patrones)
+- `feature/worker-strategy-pattern`
+- `feature/vote-observer-pattern`
+- `refactor/result-ui-cleanup`
 
 ---
 
-## Reglas de Protección de la rama `main`
+## Ciclo de Vida de una Rama de Patrón (Workflow)
 
-- ❌ No se permite hacer `push` directo a `main`.
-- ✅ Todo cambio entra vía Pull Request.
-- ✅ Se requiere al menos 1 aprobación de code review.
-- ✅ El pipeline CI debe completarse exitosamente antes de habilitar el merge.
-- ✅ La rama feature se elimina automáticamente tras el merge.
+Para la implementación de patrones de diseño (Punto 3 del Taller), seguimos este flujo estricto para asegurar la calidad técnica:
 
+### 1. Creación y Aislamiento
+Toda implementación de un patrón (ej. *Strategy*) nace de un `main` actualizado. Esto garantiza que el patrón no herede deudas técnicas de ramas en progreso.
 
+### 2. Desarrollo Atómico (Commits)
+Se promueve el uso de **Conventional Commits** para trazar el progreso del patrón:
+- `feat(worker): define connection strategy interface`
+- `feat(worker): implement postgresql retry strategy`
 
-## Convención de Commits (Conventional Commits)
+### 3. Pull Request (PR) y "Definition of Done"
+Para que un patrón sea fusionado en `main`, debe cumplir con:
+1. **Documentación:** El código debe incluir comentarios (JavaDoc/GoDoc) explicando la intención del patrón.
+2. **Revisión de Pares (Code Review):** Al menos una aprobación externa.
+3. **Pipeline CI "Verde":** Ejecución exitosa de `mvn test` (Java) o `go test` (Go).
+4. **Validación de Arquitectura:** Confirmar que no introduce acoplamientos innecesarios.
 
+### 4. Squash & Merge
+Fusionamos los commits de la rama `feature` en uno solo descriptivo para mantener un historial de `main` limpio y legible:
+`Merged PR #4: Implementación de Patrón Strategy en Worker Service`
 
-feat(vote): agregar opción de voto "Pizza"
-fix(worker): corregir conexión intermitente a Kafka
-docs(result): actualizar README con instrucciones de ejecución
-chore(infra): actualizar versión de Helm chart
+---
 
+## Manejo de Versiones y Hitos (Git Tags)
 
+Para marcar momentos importantes (como la entrega de este Taller), usamos etiquetas semánticas (`SemVer`):
 
-## Diagrama del Flujo
+- **v1.0.0-taller:** Versión base de la aplicación.
+- **v1.1.0-patrones:** Versión con patrones de diseño (Strategy y Observer) integrados.
 
+**Comando:**
+```bash
+git tag -a v1.1.0-patrones -m "Entrega Punto 3: Patrones de Diseño"
+git push origin v1.1.0-patrones
+```
 
-        ┌─────────────────────────────────────────────┐
-        │                    main                      │
-        │  (protegida, solo recibe merges via PR)      │
-        └──────┬──────────────────────────▲────────────┘
-               │                          │
-               │  git checkout -b         │  Squash & Merge
-               │  feature/xxx             │  (tras CI verde + review)
-               ▼                          │
-        ┌─────────────────────────────────┘
-        │   feature/vote-nueva-opcion
-        │   - commit 1
-        │   - commit 2
-        │   - Push → Pull Request
-        └─────────────────────────────────
+---
 
-
-
-
-## Justificación
-
-GitHub Flow fue elegido sobre Gitflow porque:
-- El proyecto despliega a un solo entorno (no requiere ramas `develop`, `release` ni `staging` separadas).
-- Es más simple de adoptar y entender.
-- Se alinea perfectamente con CI/CD: cada merge a `main` dispara el pipeline de construcción y despliegue automático.
-
-
-
-## Identificación e Implementación de Patrones de Diseño
-
-Como parte del flujo de branching, los patrones de diseño se identifican y se implementan en ramas `feature/` dedicadas, pasando por Pull Request antes de integrarse a `main`.
-
-### Patrones Identificados en el Proyecto
+## Patrones Identificados en el Proyecto
 
 | Patrón | Microservicio | Descripción breve |
 |--------|--------------|-------------------|
@@ -137,103 +73,26 @@ Como parte del flujo de branching, los patrones de diseño se identifican y se i
 | **Strategy** | Worker (Go) | Estrategia intercambiable de conexión a servicios externos |
 | **Observer** | Vote (Java) | Notificación a múltiples manejadores al recibir un voto |
 
+---
 
+## Patrones Implementados (Código de Referencia)
 
-### Patrones Implementados (con código)
-
-Se eligieron los patrones **Strategy** y **Observer** por ser los más representativos del comportamiento interno de los microservicios y las más sencillos de implementar sin alterar la lógica de negocio existente.
+Se eligieron los patrones **Strategy** y **Observer** por ser los más representativos del comportamiento interno de los microservicios.
 
 #### Patrón 1: Strategy — Worker (Go)
-
 **Rama:** `feature/worker-strategy-pattern`
+**Uso:** Se define una interfaz `ConnectStrategy` para manejar reintentos de conexión a bases de datos y Kafka de forma genérica.
 
-**Problema:** El worker tenía la lógica de reintentos de conexión (a Kafka y a PostgreSQL) duplicada en loops infinitos dentro de funciones independientes (`openDatabase`, `getKafkaMaster`). Si se quisiera cambiar la estrategia de retry (ej. exponential backoff), habría que modificar múltiples lugares.
-
-**Solución:** Se define una interfaz `ConnectStrategy` con un método `Connect()`, permitiendo pasar cualquier estrategia de conexión como parámetro.
-
-**Archivos modificados:** `worker/main.go`
-
-```go
-// ConnectStrategy define cómo conectar a un servicio externo.
-type ConnectStrategy func() error
-
-// retryUntilConnected ejecuta la estrategia hasta que tenga éxito.
-func retryUntilConnected(strategy ConnectStrategy, serviceName string) {
-    fmt.Printf("Waiting for %s...\n", serviceName)
-    for {
-        if err := strategy(); err == nil {
-            fmt.Printf("%s connected!\n", serviceName)
-            return
-        }
-    }
-}
-```
-
-**Uso:**
-```go
-retryUntilConnected(func() error { return db.Ping() }, "postgresql")
-retryUntilConnected(func() error { _, err := sarama.NewConsumer(brokers, config); return err }, "kafka")
-```
+#### Patrón 2: Observer — Vote Service (Java)
+**Rama:** `feature/vote-observer-pattern`
+**Uso:** Se desacopla la recepción del voto de sus efectos secundarios (logging, Kafka) mediante una interfaz `VoteEventHandler`.
 
 ---
 
-#### Patrón 2: Observer — Vote Service (Java)
+## Justificación Técnica de la Elección
 
-**Rama:** `feature/vote-observer-pattern`
-
-**Problema:** En `VoteController.java`, cuando llega un voto, el controlador realiza directamente dos acciones acopladas: loggear y enviar a Kafka. Agregar una acción nueva (ej. métricas, auditoría) requeriría modificar el controlador.
-
-**Solución:** Se define una interfaz `VoteEventHandler` (Observer). El controlador notifica a todos los handlers registrados, sin conocer su implementación.
-
-**Archivos modificados/creados:**
-- `vote/src/main/java/com/okteto/vote/controller/VoteEventHandler.java` *(nuevo)*
-- `vote/src/main/java/com/okteto/vote/controller/VoteController.java` *(modificado)*
-
-```java
-// VoteEventHandler.java — interfaz Observer
-public interface VoteEventHandler {
-    void onVoteReceived(String voterId, String vote);
-}
-```
-
-```java
-// Implementación: maneja el envío a Kafka
-public class KafkaVoteHandler implements VoteEventHandler {
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    private static final String TOPIC = "votes";
-
-    public KafkaVoteHandler(KafkaTemplate<String, String> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
-
-    @Override
-    public void onVoteReceived(String voterId, String vote) {
-        kafkaTemplate.send(TOPIC, voterId, vote);
-    }
-}
-```
-
-```java
-// En VoteController: registro y notificación
-List<VoteEventHandler> handlers = List.of(
-    new KafkaVoteHandler(kafkaTemplate),
-    new LogVoteHandler(logger)
-);
-
-// Al recibir un voto:
-handlers.forEach(h -> h.onVoteReceived(voter, vote));
-```
-
-
-### Flujo de Ramas para Implementación de Patrones
-
-main
-  │
-  ├── feature/worker-strategy-pattern   ← Patrón Strategy en Go
-  │       └── PR → Code Review → Merge
-  │
-  └── feature/vote-observer-pattern     ← Patrón Observer en Java
-          └── PR → Code Review → Merge
-
-
-Cada rama sigue el flujo estándar de GitHub Flow: se crea desde `main`, se desarrolla, se abre un Pull Request y pasa por revisión antes de integrarse.
+GitHub Flow es el estándar para microservicios porque:
+1. **Evita el "Merge Hell":** Al tener ramas de vida corta, los conflictos son mínimos.
+2. **Promueve CI/CD:** Fomenta la idea de que `main` es siempre desplegable.
+3. **Desacoplamiento:** Permite que un desarrollador trabaje en el patrón del `worker` sin interferir con el `vote` service.
+4. **Trazabilidad:** Mediante los Pull Requests, queda un registro histórico del "por qué" se tomó cada decisión de diseño.

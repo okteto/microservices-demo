@@ -13,13 +13,6 @@ El patrón de **Mensajería Asíncrona** desacopla los componentes de un sistema
 
 ### Aplicación en el Proyecto
 
-```
-┌──────────┐    Produce     ┌───────────┐    Consume     ┌──────────┐
-│  Vote    │───────────────►│   Kafka   │───────────────►│  Worker  │
-│ (Java)   │   topic:votes  │  (Broker) │   topic:votes  │  (Go)    │
-└──────────┘                └───────────┘                └──────────┘
-```
-
 - **Productor**: El microservicio `vote` (Java/Spring Boot) envía un mensaje al tópico `votes` de Kafka cada vez que un usuario emite un voto.
   ```java
   // VoteController.java - línea 76
@@ -112,26 +105,59 @@ El patrón **Backends for Frontends** separa los servicios backend según el tip
 
 ### Aplicación en el Proyecto
 
-```
-┌────────────────┐          ┌─────────────────┐
-│  Frontend de   │          │  Frontend de    │
-│  Votación      │          │  Resultados     │
-│  (Thymeleaf)   │          │  (HTML+Socket)  │
-└───────┬────────┘          └───────┬─────────┘
-        │                           │
-        ▼                           ▼
-┌────────────────┐          ┌─────────────────┐
-│  Vote Service  │          │ Result Service  │
-│  (Java:8080)   │          │ (Node.js:4000)  │
-│  POST /        │          │ GET /           │
-│  GET /         │          │ WebSocket       │
-└────────────────┘          └─────────────────┘
-```
-
 - **Vote Service** (Java): Backend exclusivo para la interfaz de votación. Maneja formularios POST y cookies.
 - **Result Service** (Node.js): Backend exclusivo para la interfaz de resultados. Maneja WebSockets para actualizaciones en tiempo real.
 
 Cada frontend tiene su propio backend optimizado para su caso de uso, en lugar de compartir un único API.
+
+---
+
+## Patrones de Diseño Implementados (Código Real)
+
+Además de los patrones de arquitectura de nube, se implementaron dos patrones clásicos de diseño de software para mejorar la mantenibilidad de los microservicios.
+
+### Patrón 4: Strategy (Estrategia) — Microservicio Worker (Go)
+
+**Uso:** Manejo de reintentos de conexión a servicios externos (PostgreSQL y Kafka).
+
+- **Problemática:** La lógica de reintentos de conexión estaba duplicada en loops infinitos dentro de funciones separadas. Si se quería cambiar el algoritmo de reintentos (ej. exponencial backoff), había que modificar múltiples archivos.
+- **Solución:** Se extrajo la lógica a una función genérica `retryUntilConnected` que acepta una **estrategia de conexión** como parámetro.
+- **Archivo de referencia:** `worker/main.go`
+
+```go
+// Definición de la estrategia
+type ConnectStrategy func() error
+
+// Ejecución de la estrategia en el worker
+retryUntilConnected(func() error { return db.Ping() }, "postgresql")
+```
+
+---
+
+### Patrón 5: Observer (Observador) — Microservicio Vote (Java)
+
+**Uso:** Desacoplamiento del flujo de procesamiento de votos.
+
+- **Problemática:** El controlador de votos hacía demasiadas cosas: validar el voto, loggearlo y enviarlo al broker de Kafka. Agregar nuevas funciones (como auditoría o métricas) requería modificar el controlador.
+- **Solución:** Se implementó una interfaz `VoteEventHandler` (Observer). El controlador ahora solo notifica a los "observadores" registrados cuando llega un voto.
+- **Archivo de referencia:** `VoteController.java`, `VoteEventHandler.java`.
+
+```java
+// Notificación a múltiples observadores (Kafka, Log)
+getHandlers().forEach(handler -> handler.onVoteReceived(finalVoter, finalVote));
+```
+
+---
+
+## Resumen Final de Patrones
+
+| Patrón | Tipo | Objetivo |
+|--------|------|----------|
+| **Asynchronous Messaging** | Arquitectura | Desacoplamiento Vote → Worker |
+| **External Configuration Store** | Arquitectura | Gestión de variables (YAML/Env) |
+| **Backends for Frontends** | Arquitectura | Backend optimizado por cliente web |
+| **Strategy** | Diseño Software | Flexibilidad en reintentos de conexión |
+| **Observer** | Diseño Software | Desacoplamiento lógica de negocio |
 
 ### Beneficios Obtenidos
 
