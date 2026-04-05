@@ -1,0 +1,49 @@
+name: CI - Result Service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'result/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'result/**'
+
+jobs:
+  test-and-build:
+    name: Test & Build Result
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: result/package-lock.json
+
+      - name: 🧹 Lint Check
+        working-directory: result
+        run: npm ci
+
+      - name: 🔑 Login to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🐳 Build and push Docker image
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v5
+        with:
+          context: result
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/result:latest
+            ${{ secrets.DOCKER_USERNAME }}/result:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/result:v1.${{ github.run_number }}
