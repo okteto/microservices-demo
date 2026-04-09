@@ -1,0 +1,72 @@
+version: '3.8'
+services:
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - '2181:2181'
+    networks:
+      - micro-demo
+
+  kafka:
+    image: bitnami/kafka:latest
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - '9092:9092'
+    depends_on:
+      - zookeeper
+    networks:
+      - micro-demo
+
+  postgresql:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=okteto
+      - POSTGRES_PASSWORD=okteto
+      - POSTGRES_DB=votes
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - micro-demo
+
+  result:
+    build: ./result
+    ports:
+      - '4000:80'
+    depends_on:
+      - postgresql
+    networks:
+      - micro-demo
+
+  vote:
+    build: ./vote
+    ports:
+      - '8080:8080'
+    depends_on:
+      - kafka
+    networks:
+      - micro-demo
+
+  worker:
+    build: ./worker
+    depends_on:
+      - kafka
+      - postgresql
+    networks:
+      - micro-demo
+    command: ["--topic", "votes", "--retry-max-attempts", "0", "--retry-initial-backoff-ms", "1000"]
+
+networks:
+  micro-demo:
+    driver: bridge
+
+volumes:
+  pgdata:

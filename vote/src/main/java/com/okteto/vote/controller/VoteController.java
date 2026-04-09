@@ -1,10 +1,13 @@
 package com.okteto.vote.controller;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -13,28 +16,26 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.thymeleaf.util.StringUtils;
 
+import com.okteto.vote.events.VoteEvent;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.concurrent.CompletableFuture;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.UUID;
 
 @Controller
 public class VoteController {
+
     private static final String OPTION_A_ENV_VAR = "OPTION_A";
     private static final String OPTION_B_ENV_VAR = "OPTION_B";
-    private static final String KAFKA_TOPIC = "votes";
 
     private final Logger logger = LoggerFactory.getLogger(VoteController.class);
 
     @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private ApplicationEventPublisher eventPublisher;
 
     @GetMapping("/")
     String index(@CookieValue(name = "voter_id", defaultValue = "") String voterId,
-                 Model model,
-                 HttpServletResponse response) {
+            Model model,
+            HttpServletResponse response) {
         String voter = voterId;
         Vote v = new Vote();
         model.addAttribute("optionA", v.getOptionA());
@@ -54,9 +55,9 @@ public class VoteController {
 
     @PostMapping("/")
     String postForm(@CookieValue(name = "voter_id", defaultValue = "") String voterId,
-                    @ModelAttribute Vote voteInput,
-                    Model model,
-                    HttpServletResponse response) {
+            @ModelAttribute Vote voteInput,
+            Model model,
+            HttpServletResponse response) {
         String voter = voterId;
         String vote = voteInput.getVote();
         Vote v = new Vote();
@@ -73,24 +74,15 @@ public class VoteController {
         Cookie cookie = new Cookie("voter_id", voter);
         response.addCookie(cookie);
 
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(KAFKA_TOPIC, voter, vote);
-
-        future.whenComplete((result, ex) -> {
-            if (ex == null) {
-                logger.info("Message [{}] delivered with offset {}",
-                        vote,
-                        result.getRecordMetadata().offset());
-            } else {
-                logger.warn("Unable to deliver message [{}]. {}",
-                        vote,
-                        ex.getMessage());
-            }
-        });
+        // Publish a VoteEvent - observers will react (Kafka, logging, metrics, ...)
+        VoteEvent event = new VoteEvent(voter, vote);
+        eventPublisher.publishEvent(event);
 
         return "index";
     }
 
     public static class Vote {
+
         private String optionA = "Burritos";
         private String optionB = "Tacos";
         private String hostname = "unknown";

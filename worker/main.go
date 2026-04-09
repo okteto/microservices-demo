@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
-
-	"database/sql"
-	"fmt"
+	"time"
 
 	_ "github.com/lib/pq"
 
@@ -16,9 +16,11 @@ import (
 )
 
 var (
-	brokerList        = kingpin.Flag("brokerList", "List of brokers to connect").Default("kafka:9092").Strings()
-	topic             = kingpin.Flag("topic", "Topic name").Default("votes").String()
-	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
+	brokerList             = kingpin.Flag("brokerList", "List of brokers to connect").Default("kafka:9092").Strings()
+	topic                  = kingpin.Flag("topic", "Topic name").Default("votes").String()
+	messageCountStart      = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
+	retryMaxAttempts       = kingpin.Flag("retry-max-attempts", "Max retry attempts (0=infinite)").Default("0").Int()
+	retryInitialBackoffMs  = kingpin.Flag("retry-initial-backoff-ms", "Initial backoff in milliseconds").Default("1000").Int()
 )
 
 const (
@@ -30,10 +32,18 @@ const (
 )
 
 func main() {
-	db := openDatabase()
-	defer db.Close()
+	kingpin.Parse()
 
-	pingDatabase(db)
+	ctx := context.Background()
+
+	// --- Postgres connection strategy ---
+	psqlConn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	pgStrategy := NewPostgresStrategy(psqlConn)
+	if err := RetryUntilConnected(ctx, pgStrategy, *retryMaxAttempts, time.Duration(*retryInitialBackoffMs)*time.Millisecond); err != nil {
+		log.Panic(err)
+	}
+	db := pgStrategy.DB
+	defer db.Close()
 
 	dropTableStmt := `DROP TABLE IF EXISTS votes`
 	if _, err := db.Exec(dropTableStmt); err != nil {
@@ -45,7 +55,12 @@ func main() {
 		log.Panic(err)
 	}
 
-	master := getKafkaMaster()
+	// --- Kafka connection strategy ---
+	kafkaStrategy := NewKafkaStrategy(*brokerList)
+	if err := RetryUntilConnected(ctx, kafkaStrategy, *retryMaxAttempts, time.Duration(*retryInitialBackoffMs)*time.Millisecond); err != nil {
+		log.Panic(err)
+	}
+	master := kafkaStrategy.Consumer
 	defer master.Close()
 
 	consumer, err := master.ConsumePartition(*topic, 0, sarama.OffsetOldest)
@@ -77,39 +92,4 @@ func main() {
 	}()
 	<-doneCh
 	log.Println("Processed", *messageCountStart, "messages")
-}
-
-func openDatabase() *sql.DB {
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	for {
-		db, err := sql.Open("postgres", psqlconn)
-		if err == nil {
-			return db
-		}
-	}
-}
-
-func pingDatabase(db *sql.DB) {
-	fmt.Println("Waiting for postgresql...")
-	for {
-		if err := db.Ping(); err == nil {
-			fmt.Println("Postgresql connected!")
-			return
-		}
-	}
-}
-
-func getKafkaMaster() sarama.Consumer {
-	kingpin.Parse()
-	config := sarama.NewConfig()
-	config.Consumer.Return.Errors = true
-	brokers := *brokerList
-	fmt.Println("Waiting for kafka...")
-	for {
-		master, err := sarama.NewConsumer(brokers, config)
-		if err == nil {
-			fmt.Println("Kafka connected!")
-			return master
-		}
-	}
 }
