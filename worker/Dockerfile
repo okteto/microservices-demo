@@ -35,7 +35,7 @@ RUN go mod download
 ADD . .
 RUN go mod tidy
 
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker .
 
 FROM scratch
 
