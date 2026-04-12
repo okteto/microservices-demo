@@ -1,0 +1,53 @@
+name: ci-infra
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infrastructure/**"
+      - "**/chart/**"
+      - "scripts/cluster/**"
+      - ".github/workflows/ci-infra.yml"
+  pull_request:
+    paths:
+      - "infrastructure/**"
+      - "**/chart/**"
+      - "scripts/cluster/**"
+      - ".github/workflows/ci-infra.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-infra-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  helm:
+    name: Helm lint and template
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+
+      - name: Lint charts
+        run: |
+          set -e
+          for d in infrastructure vote/chart worker/chart result/chart; do
+            echo "==> helm lint $d"
+            helm lint "$d"
+          done
+
+      - name: Template charts (dry-run render)
+        run: |
+          set -e
+          helm template test-infra infrastructure/ > /dev/null
+          helm template test-vote vote/chart --set image=example.local/vote:test > /dev/null
+          helm template test-worker worker/chart --set image=example.local/worker:test > /dev/null
+          helm template test-result result/chart --set image=example.local/result:test > /dev/null
