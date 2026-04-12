@@ -1,0 +1,128 @@
+name: ci-app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-app-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    name: Test (Java, Go, Node)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 22
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "22"
+          cache: maven
+
+      - name: Test vote (Maven)
+        working-directory: vote
+        run: mvn -B verify
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: worker/go.mod
+          cache-dependency-path: worker/go.sum
+
+      - name: Test worker (Go)
+        working-directory: worker
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: result/package-lock.json
+
+      - name: Test result (Node)
+        working-directory: result
+        run: |
+          npm ci
+          npm test
+
+  docker:
+    name: Docker build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image prefix (lowercase)
+        id: meta
+        run: |
+          OWNER_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "prefix=ghcr.io/${OWNER_REPO}" >> "$GITHUB_OUTPUT"
+          echo "owner_repo=${OWNER_REPO}" >> "$GITHUB_OUTPUT"
+
+      - name: Build vote
+        uses: docker/build-push-action@v6
+        with:
+          context: ./vote
+          file: ./vote/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.meta.outputs.prefix }}/vote:${{ github.sha }}
+            ${{ steps.meta.outputs.prefix }}/vote:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build worker
+        uses: docker/build-push-action@v6
+        with:
+          context: ./worker
+          file: ./worker/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.meta.outputs.prefix }}/worker:${{ github.sha }}
+            ${{ steps.meta.outputs.prefix }}/worker:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build result
+        uses: docker/build-push-action@v6
+        with:
+          context: ./result
+          file: ./result/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ steps.meta.outputs.prefix }}/result:${{ github.sha }}
+            ${{ steps.meta.outputs.prefix }}/result:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          echo "### Images" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${{ steps.meta.outputs.prefix }}/vote:${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${{ steps.meta.outputs.prefix }}/worker:${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${{ steps.meta.outputs.prefix }}/result:${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
