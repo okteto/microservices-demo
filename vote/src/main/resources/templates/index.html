@@ -14,18 +14,27 @@
 </head>
 <body>
 <div id="content-container">
-    <div id="content-container-center">
-        <h3 th:text="'' + ${optionA} + ' vs ' + ${optionB} + '!'"></h3>
+    <div id="content-container-center" class="centered-box">
+    <div class="card">
+        <h1 th:text="'' + ${optionA} + ' vs ' + ${optionB} + '!'"></h1>
+
         <form id="choice" name='form' method="POST" action="/">
-            <button id="a" type="submit" name="vote" class="a" value="a" th:field="*{vote}" th:text="${optionA}"></button>
-            <button id="b" type="submit" name="vote" class="b" value="b" th:field="*{vote}" th:text="${optionB}"></button>
+            <button id="a" type="submit" name="vote" class="a btn btn-primary"
+                    value="a" th:field="*{vote}" th:text="${optionA}"></button>
+
+            <button id="b" type="submit" name="vote" class="b btn btn-secondary"
+                    value="b" th:field="*{vote}" th:text="${optionB}"></button>
         </form>
+
+        <hr>
+
         <div id="tip">
-            (Tip: you can change your vote)
-        </div>
-         <div id="hostname" th:text="'Processed by container ID ' + ${hostname}">
+            (Tip: you can update your vote anytime)
         </div>
     </div>
+
+    <div id="hostname" th:text="'Processed by container ID ' + ${hostname}"></div>
+</div>
 </div>
 <script src="//code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
