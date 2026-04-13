@@ -62,6 +62,8 @@ button.b{
 #content-container-center{
   display: table-cell;
   text-align: center;
+  padding: 20px;
+  border-radius: 8px;
 }
 
 #content-container-center h3{
