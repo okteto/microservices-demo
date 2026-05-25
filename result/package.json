@@ -4,10 +4,13 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/**/*.test.js"
   },
   "author": "",
   "license": "MIT",
+  "devDependencies": {
+    "mocha": "10.8.2"
+  },
   "dependencies": {
     "async": "3.2.6",
     "cookie-parser": "1.4.7",
