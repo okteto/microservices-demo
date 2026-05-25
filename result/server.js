@@ -4,6 +4,7 @@ var express = require('express'),
   path = require('path'),
   cookieParser = require('cookie-parser'),
   methodOverride = require('method-override'),
+  { collectVotesFromResult } = require('./votes'),
   app = express(),
   server = require('http').Server(app),
   io = require('socket.io')(server, {
@@ -63,15 +64,6 @@ function getVotes(client) {
   );
 }
 
-function collectVotesFromResult(result) {
-  var votes = { a: 0, b: 0 };
-
-  result.rows.forEach(function (row) {
-    votes[row.vote] = parseInt(row.count);
-  });
-
-  return votes;
-}
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
