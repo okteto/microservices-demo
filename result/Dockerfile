@@ -1,33 +1,24 @@
 FROM node:22.12.0-slim
 
-# add curl for healthcheck
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    curl \
+    && apt-get install -y --no-install-recommends curl tini \
     && rm -rf /var/lib/apt/lists/*
-
-ARG TARGETARCH
-
-# Add Tini for proper init of signals
-ENV TINI_VERSION=v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
-RUN chmod +x /tini
 
 WORKDIR /app
 
-# have nodemon available for local dev use (file watching)
-RUN npm install -g nodemon@3.1.7
+ENV NODE_ENV=production
 
 COPY package*.json ./
 
-RUN npm install \
+RUN npm install --omit=dev \
  && npm cache clean --force \
  && mv /app/node_modules /node_modules
 
 COPY . .
 
-ENV PORT 80
+ENV PORT=80
 
 EXPOSE 80
 
-CMD ["/tini", "--", "node", "server.js"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["node", "server.js"]

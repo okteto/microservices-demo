@@ -1,7 +1,8 @@
-node_modules/
 .git/
+target/
 *.md
 Dockerfile
 .dockerignore
-.env*
-.npm
+.idea/
+*.iml
+src/test/

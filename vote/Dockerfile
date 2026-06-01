@@ -20,10 +20,7 @@ RUN addgroup --system --gid 1001 spring && \
 WORKDIR /app
 
 # Copy the JAR file from builder stage
-COPY --from=builder /app/target/*.jar app.jar
-
-# Change ownership to non-root user
-RUN chown spring:spring app.jar
+COPY --chown=spring:spring --from=builder /app/target/*.jar app.jar
 
 USER spring:spring
 
