@@ -13,7 +13,7 @@ postgresql:
     enabled: true
     size: 1Gi
     storageClass: ""
-  
+
   service:
     port: 5432
 
@@ -27,7 +27,7 @@ kafka:
     enabled: true
     size: 1Gi
     storageClass: ""
-  
+
   service:
     port: 9092
   

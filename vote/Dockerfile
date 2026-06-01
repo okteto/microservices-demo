@@ -5,11 +5,11 @@ WORKDIR /app
 
 # Copy only pom.xml first to leverage Docker layer caching
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline -B
 
 # Copy source code and build
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:22-jre-jammy
