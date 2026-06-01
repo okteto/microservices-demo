@@ -1,7 +1,8 @@
-node_modules/
 .git/
 *.md
 Dockerfile
 .dockerignore
-.env*
-.npm
+*.test
+*.out
+chart/
+Makefile
