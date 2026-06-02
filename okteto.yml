@@ -18,6 +18,11 @@ build:
     dockerfile: Dockerfile
     target: dev
 
+  vote-dev:
+    context: vote
+    dockerfile: Dockerfile
+    target: dev
+
 deploy:
   - helm upgrade --install infrastructure infrastructure/
   - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
@@ -29,6 +34,7 @@ forward:
 
 dev:
   vote:
+    image: ${OKTETO_BUILD_VOTE_DEV_IMAGE}
     command: mvn spring-boot:run
     sync:
       - ./vote:/app
