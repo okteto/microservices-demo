@@ -4,3 +4,5 @@
 
 replicaCount: 1
 image: okteto.dev/vote
+optionA: Pasta
+optionB: Tacos

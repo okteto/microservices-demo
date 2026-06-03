@@ -17,6 +17,11 @@ spec:
       containers:
       - image: {{ .Values.image }}
         name: vote
+        env:
+        - name: OPTION_A
+          value: {{ .Values.optionA | quote }}
+        - name: OPTION_B
+          value: {{ .Values.optionB | quote }}
         ports:
         - containerPort: 8080
           name: vote
