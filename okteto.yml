@@ -35,7 +35,7 @@ forward:
 dev:
   vote:
     image: ${OKTETO_BUILD_VOTE_DEV_IMAGE}
-    command: mvn spring-boot:run
+    command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     sync:
       - ./vote:/app
     forward:
@@ -44,15 +44,17 @@ dev:
       enabled: false
 
   result:
-    command: nodemon server.js
+    command: node --inspect=0.0.0.0:9229 server.js
     sync:
       - ./result:/app
+    forward:
+      - 9229:9229
     persistentVolume:
       enabled: false
 
   worker:
     image: ${OKTETO_BUILD_DEV_IMAGE}
-    command: bash
+    command: make debug
     securityContext:
       capabilities:
         add:
