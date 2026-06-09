@@ -75,3 +75,10 @@ test:
       - /root/.npm
     commands:
       - cd result && npm install && npm test
+
+  e2e:
+    image: node:22.12.0-slim
+    caches:
+      - /root/.npm
+    commands:
+      - cd e2e && npm install && npm test
