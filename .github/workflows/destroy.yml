@@ -11,9 +11,9 @@ jobs:
       uses: okteto/context@latest
       with:
         token: ${{ secrets.OKTETO_TOKEN }}
-        url: ${{ secrets.OKTETO_URL }}
+        url: ${{ secrets.OKTETO_CONTEXT }}
 
     - name: Destroy preview environment
       uses: okteto/destroy-preview@latest
       with:
-        name: pr-${{ github.event.number }}-cindylopez
+        name: staging-pr-${{ github.event.number }}
