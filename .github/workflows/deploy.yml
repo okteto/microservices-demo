@@ -1,4 +1,4 @@
-
+name: Preview
 
 on: 
   pull_request:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   deploy:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

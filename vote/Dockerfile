@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.9.9-eclipse-temurin-22 AS builder
+FROM maven:3.10.0-eclipse-temurin-25 AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 # Dev stage: full Maven + JDK so `okteto up` can run `mvn spring-boot:run`.
 # Dependencies are baked into the image (no cache mount) so startup is fast
 # even without a persistent volume.
-FROM maven:3.9.9-eclipse-temurin-22 AS dev
+FROM maven:3.10.0-eclipse-temurin-25 AS dev
 
 WORKDIR /app
 
@@ -22,7 +22,7 @@ COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Runtime stage
-FROM eclipse-temurin:22-jre-jammy
+FROM eclipse-temurin:25-jre-noble
 
 RUN addgroup --system --gid 1001 spring && \
     adduser --system --uid 1001 --gid 1001 spring
