@@ -25,3 +25,10 @@ jobs:
         with:
           name: staging-pr-${{ github.event.number }}
           scope: global
+
+      - name: Run end-to-end tests
+        uses: okteto/test@latest
+        with:
+          namespace: staging-pr-${{ github.event.number }}
+          tests: e2e
+          timeout: 10m
