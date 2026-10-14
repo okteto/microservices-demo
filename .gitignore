@@ -19,3 +19,5 @@
 /vote/vote.iml
 
 /browser_screenshots
+
+node_modules/

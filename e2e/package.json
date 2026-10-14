@@ -1,0 +1,15 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "description": "End-to-end tests for the deployed voting app",
+  "private": true,
+  "scripts": {
+    "test": "mocha --timeout 120000 test/**/*.test.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "12.0.3",
+    "pg": "8.23.1",
+    "socket.io-client": "4.8.4"
+  }
+}
