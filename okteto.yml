@@ -13,16 +13,6 @@ build:
     context: worker
     dockerfile: Dockerfile
 
-  dev:
-    context: worker
-    dockerfile: Dockerfile
-    target: dev
-
-  vote-dev:
-    context: vote
-    dockerfile: Dockerfile
-    target: dev
-
 deploy:
   image: okteto/pipeline-runner:1.49.1
   commands:
