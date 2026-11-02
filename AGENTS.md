@@ -11,11 +11,30 @@ A voting app that runs on Okteto, defined in `okteto.yml`:
 
 Images, deploy steps, dev containers and tests are all declared in `okteto.yml`. Use the `okteto` CLI for everything; do not run `docker build` or `docker run` locally.
 
+## Namespace
+
+Each Claude Code session works in its own Okteto namespace, named `claude-` followed by the first 8 characters of `$CLAUDE_CODE_SESSION_ID`. If the Okteto context is `https://staging.okteto.dev`, the name also needs the user's GitHub username as a suffix (`claude-<8 chars>-<username>`). On that context, the Okteto username shown by `okteto context show` is the GitHub username.
+
+At the start of the session, create it:
+
+```sh
+NS="claude-${CLAUDE_CODE_SESSION_ID:0:8}"
+CTX=$(okteto context show)
+if [ "$(echo "$CTX" | jq -r .name)" = "https://staging.okteto.dev" ]; then
+  NS="$NS-$(echo "$CTX" | jq -r .username)"
+fi
+okteto namespace create "$NS"
+```
+
+When the user asks for something that needs code changes, make the changes first. Then, before any `okteto build`, `okteto deploy` or `okteto test`, run the same command again. It is idempotent and makes sure the namespace exists and is the current Okteto context, so every build, deploy and test targets it. Shell variables do not persist between commands, so always run the whole block, not just the last line.
+
 ## Devflow
 
 Run this loop after every round of changes, and do not report the work as done until every step passes.
 
 ### 1. Deploy
+
+First run the namespace block from the **Namespace** section, then:
 
 ```sh
 okteto deploy
