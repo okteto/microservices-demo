@@ -9,7 +9,7 @@ A voting app that runs on Okteto, defined in `okteto.yml`:
 - `result` (Node.js): reads totals from PostgreSQL and shows them live.
 - `infrastructure/` (Helm): PostgreSQL and Kafka.
 
-Images, deploy steps, dev containers and tests are all declared in `okteto.yml`. Use the `okteto` CLI for everything; do not run `docker build` or `docker run` locally.
+Images, deploy steps and tests are all declared in `okteto.yml`. Use the `okteto` CLI for everything; do not run `docker build` or `docker run` locally.
 
 ## Namespace
 
@@ -52,8 +52,6 @@ Build only the failing image, using its key from the `build` section of `okteto.
 okteto build result --namespace <namespace>
 okteto build vote --namespace <namespace>
 okteto build worker --namespace <namespace>
-okteto build vote-dev --namespace <namespace>   # dev target of vote
-okteto build dev --namespace <namespace>        # dev target of worker
 ```
 
 Fix the error, rebuild that image until it succeeds, then go back to step 1.

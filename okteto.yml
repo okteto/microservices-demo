@@ -13,60 +13,13 @@ build:
     context: worker
     dockerfile: Dockerfile
 
-  dev:
-    context: worker
-    dockerfile: Dockerfile
-    target: dev
-
-  vote-dev:
-    context: vote
-    dockerfile: Dockerfile
-    target: dev
-
 deploy:
-  - helm upgrade --install infrastructure infrastructure/
-  - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
-  - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
-  - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
-
-forward:
-  - 5432:postgresql:5432
-
-dev:
-  vote:
-    image: ${OKTETO_BUILD_VOTE_DEV_IMAGE}
-    command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
-    sync:
-      - ./vote:/app
-    forward:
-    - 5005:5005
-    persistentVolume:
-      enabled: false
-
-  result:
-    command: node --inspect=0.0.0.0:9229 server.js
-    sync:
-      - ./result:/app
-    forward:
-      - 9229:9229
-    persistentVolume:
-      enabled: false
-
-  worker:
-    image: ${OKTETO_BUILD_DEV_IMAGE}
-    command: make debug
-    securityContext:
-      capabilities:
-        add:
-        - SYS_PTRACE
-    sync:
-      - ./worker:/app
-    forward:
-      - 2345:2345
-    persistentVolume:
-      enabled: false
-
-
+  image: okteto/pipeline-runner:1.49.1
+  commands:
+    - helm upgrade --install infrastructure infrastructure/
+    - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
+    - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
+    - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
 
 test:
   unit:
