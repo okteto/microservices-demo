@@ -13,21 +13,22 @@ Images, deploy steps, dev containers and tests are all declared in `okteto.yml`.
 
 ## Namespace
 
-Each Claude Code session works in its own Okteto namespace, named `claude-` followed by the first 8 characters of `$CLAUDE_CODE_SESSION_ID`. If the Okteto context is `https://staging.okteto.dev`, the name also needs the user's GitHub username as a suffix (`claude-<8 chars>-<username>`). On that context, the Okteto username shown by `okteto context show` is the GitHub username.
+Each Claude Code session works in its own Okteto namespace, named `claude-` followed by the first 8 characters of `$CLAUDE_CODE_SESSION_ID`. If the Okteto context is `https://staging.okteto.dev`, namespace names must start with `staging-`, so the name gets that prefix (`staging-claude-<8 chars>`).
 
 At the start of the session, work out the name and create the namespace:
 
 ```sh
 NS="claude-${CLAUDE_CODE_SESSION_ID:0:8}"
-CTX=$(okteto context show)
-if [ "$(echo "$CTX" | jq -r .name)" = "https://staging.okteto.dev" ]; then
-  NS="$NS-$(echo "$CTX" | jq -r .username)"
+if [ "$(okteto context show | jq -r .name)" = "https://staging.okteto.dev" ]; then
+  NS="staging-$NS"
 fi
 okteto namespace create "$NS"
 echo "$NS"
 ```
 
 Shell variables do not persist between commands, so remember the printed name and write it literally in later commands (`<namespace>` below).
+
+`okteto namespace create` also switches the user's current Okteto context to the new namespace. Mention this in your report so the user can switch back with `okteto namespace use <their namespace>`.
 
 Pass `--namespace <namespace>` to every `okteto` command that accepts it (`build`, `deploy`, `test`, `endpoints`, `destroy`, ...), and `-n <namespace>` to every `kubectl` command. Never rely on the current Okteto context or kubeconfig namespace: it is shared with other sessions and with the user.
 
