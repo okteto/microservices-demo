@@ -90,6 +90,20 @@ This runs every test in the `test` section of `okteto.yml`:
 
 Run one test with `okteto test unit --namespace <namespace>` or `okteto test e2e --namespace <namespace>`. If a test fails, troubleshoot, fix, and go back to step 1.
 
+### 5. Open a pull request
+
+Once every step above passes, open a pull request without waiting to be asked:
+
+```sh
+git checkout -b <short-descriptive-branch>   # if still on main
+git add <changed files>
+git commit -m "<summary>"
+git push -u origin HEAD
+gh pr create --base main --title "<summary>" --body "<what changed and how it was verified>"
+```
+
+Include the PR URL in your report. For later rounds of changes on the same task, push new commits to the same branch instead of opening another PR. Never push to `main` directly or merge the PR.
+
 ## Notes
 
 - Tests run in their own namespace. Reach the app through its public endpoints (`https://<service>-$OKTETO_NAMESPACE.$OKTETO_DOMAIN`) and internal services with the namespace suffix (e.g. `postgresql.$OKTETO_NAMESPACE`).
