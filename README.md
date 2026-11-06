@@ -6,7 +6,7 @@ A demo application with Java, Go, Javascript, Kafka and PostgresQL.
 
 ![Architecture diagram](architecture.png)
 
-* A front-end web app in [Java](/vote) which lets you vote between Burger and Pizza
+* A front-end web app in [Java](/vote) which lets you vote between Meat and Fish
 * A [Kafka](https://bitnami.com/stack/kafka/helm) queue which collects new votes
 * A [Golang](/worker) or worker which consumes votes from Kafka and stores them in PostgresQL
 * A [PostgresQL](https://bitnami.com/stack/postgresql/helm) database
