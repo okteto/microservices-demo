@@ -1,0 +1,20 @@
+# Only sync the files each remote command needs.
+# Syntax: https://www.okteto.com/docs/core/remote-execution/#ignoring-files
+
+[deploy]
+*
+!infrastructure
+!result/chart
+!vote/chart
+!worker/chart
+
+[test.unit]
+*
+!result
+result/chart
+result/node_modules
+
+[test.e2e]
+*
+!e2e
+e2e/node_modules
