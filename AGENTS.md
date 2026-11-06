@@ -13,22 +13,33 @@ Images, deploy steps and tests are all declared in `okteto.yml`. Use the `okteto
 
 ## Namespace
 
-Each Claude Code session works in its own Okteto namespace, named `claude-` followed by the first 8 characters of `$CLAUDE_CODE_SESSION_ID`. If the Okteto context is `https://staging.okteto.dev`, namespace names must start with `staging-`, so the name gets that prefix (`staging-claude-<8 chars>`).
+Each Claude Code session works in its own Okteto namespace, named `claude-` followed by the first 8 characters of `$CLAUDE_CODE_SESSION_ID`. Some Okteto instances require namespace names to start with a fixed prefix, so the name gets that prefix:
+
+| Okteto context | Required prefix | Namespace name |
+| --- | --- | --- |
+| `https://staging.okteto.dev` | `staging-` | `staging-claude-<8 chars>` |
+| `https://okteto.demo.dev.okteto.net` | `demo-` | `demo-claude-<8 chars>` |
+| any other | none | `claude-<8 chars>` |
 
 At the start of the session, work out the name and create the namespace:
 
 ```sh
 NS="claude-${CLAUDE_CODE_SESSION_ID:0:8}"
-if [ "$(okteto context show | jq -r .name)" = "https://staging.okteto.dev" ]; then
-  NS="staging-$NS"
-fi
+case "$(okteto context show | jq -r .name)" in
+  https://staging.okteto.dev) NS="staging-$NS" ;;
+  https://okteto.demo.dev.okteto.net) NS="demo-$NS" ;;
+esac
 okteto namespace create "$NS"
 echo "$NS"
 ```
 
+If `okteto namespace create` fails with `'name' must start with '<prefix>-'`, the instance needs a prefix that is not in the table: prepend it, create the namespace again, and add the instance to the table and the `case` above in the same pull request as your other changes.
+
 Shell variables do not persist between commands, so remember the printed name and write it literally in later commands (`<namespace>` below).
 
 `okteto namespace create` also switches the user's current Okteto context to the new namespace. Mention this in your report so the user can switch back with `okteto namespace use <their namespace>`.
+
+The final summary of the session **must** include a clickable link to the namespace in the Okteto UI, so the user can open it directly. The link is the context URL followed by `/#/spaces/<namespace>`, for example `https://okteto.demo.dev.okteto.net/#/spaces/demo-claude-1a2b3c4d`. Get the context URL from `okteto context show | jq -r .name`.
 
 Pass `--namespace <namespace>` to every `okteto` command that accepts it (`build`, `deploy`, `test`, `endpoints`, `destroy`, ...), and `-n <namespace>` to every `kubectl` command. Never rely on the current Okteto context or kubeconfig namespace: it is shared with other sessions and with the user.
 
@@ -101,7 +112,7 @@ git push -u origin HEAD
 gh pr create --base main --title "<summary>" --body "<what changed and how it was verified>"
 ```
 
-Include the PR URL in your report. For later rounds of changes on the same task, push new commits to the same branch instead of opening another PR. Never push to `main` directly or merge the PR.
+Include the PR URL in your report, together with the link to the namespace in the Okteto UI (see [Namespace](#namespace)). For later rounds of changes on the same task, push new commits to the same branch instead of opening another PR. Never push to `main` directly or merge the PR.
 
 ## Notes
 
