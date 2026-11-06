@@ -91,8 +91,8 @@ public class VoteController {
     }
 
     public static class Vote {
-        private String optionA = "Burritos";
-        private String optionB = "Tacos";
+        private String optionA = "Cats";
+        private String optionB = "Dogs";
         private String hostname = "unknown";
         private String vote;
 
