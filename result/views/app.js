@@ -1,4 +1,4 @@
-var app = angular.module('coffeevstea', []);
+var app = angular.module('catsvsdogs', []);
 var socket = io({
   transports: ['polling']
 });
